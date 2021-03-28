@@ -126,11 +126,12 @@ class EP2000(serial.Serial):
 
         """
         # stringBuilder.Remove(0, 8);
-        start_index, length = 0, 8
-        in_buffer = in_buffer[start_index: start_index + length]
+        # start_index, length = 0, 8
+        # in_buffer = in_buffer[start_index: start_index + length]
 
         # string str = stringBuilder.Remove(stringBuilder.Length - 6, 5).ToString().Trim();
 
+        print(in_buffer)
         data = ' '.join([f'{byte:02X}' for byte in in_buffer])
         print(data)
 
