@@ -15,13 +15,42 @@ class Inverter:
 
     @staticmethod
     def list_ports():
+        '''
+        'apply_usb_info',
+        'description',
+        'device',
+        'hwid',
+        'interface',
+        'location',
+        'manufacturer',
+        'name',
+        'pid',
+        'product',
+        'serial_number',
+        'usb_description',
+        'usb_info',
+        'vid'
+        '''
+        report = f'''
+        apply_usb_info      | {apply_usb_info: 20} |
+        description         | {description: 20} |
+        device              | {device: 20} |
+        hwid                | {hwid: 20} |
+        interface           | {interface: 20} |
+        location            | {location: 20} |
+        manufacturer        | {manufacturer: 20} |
+        name                | {name: 20} |
+        pid                 | {pid: 20} |
+        product             | {product: 20} |
+        serial_number       | {serial_number: 20} |
+        usb_description     | {usb_description: 20} |
+        usb_info            | {usb_info: 20} |
+        vid                 | {vid: 20} |
+        '''
+        buffer = []
         ports = comports()
         for port in ports:
-            attributes = [
-                'description', 'device', 'hwid', 'interface', 'location', 'manufacturer', 'name', 'pid',
-                'product', 'serial_number', 'vid', 'apply_usb_info', 'usb_description', 'usb_info'
-            ]
-            pprint.pprint(dir(port))
+            print(report)
 
 
 class EP2000(Inverter):
