@@ -1,6 +1,6 @@
 import time
 from argparse import ArgumentParser
-from typing import Tuple,
+from typing import Tuple
 
 import serial
 from serial.tools.list_ports import comports
