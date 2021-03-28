@@ -35,14 +35,14 @@ class Inverter:
         buffer = []
         ports = comports()
         for port in ports:
-            buffer.append('-'*40)
             for attribute in attributes:
                 if hasattr(port, attribute):
                     value = getattr(port, attribute, None)
                     if callable(value):
-                        buffer.append(f'{attribute}: {value()}')
+                        buffer.append(f'{attribute: 14} {value(): 14}')
                     else:
-                        buffer.append(f'{attribute}: {value}')
+                        buffer.append(f'{attribute: 14} {value}: 14')
+            buffer.append('-' * 40)
         return '\n'.join(buffer)
 
 
