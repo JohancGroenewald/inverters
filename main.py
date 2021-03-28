@@ -21,7 +21,7 @@ class Inverter:
                 'description', 'device', 'hwid', 'interface', 'location', 'manufacturer', 'name', 'pid',
                 'product', 'serial_number', 'vid', 'apply_usb_info', 'usb_description', 'usb_info'
             ]
-            pprint.pprint(port)
+            pprint.pprint(dir(port))
 
 
 class EP2000(Inverter):
