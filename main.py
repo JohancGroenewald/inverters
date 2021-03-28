@@ -15,7 +15,7 @@ class Inverter:
 
     @staticmethod
     def list_ports():
-        '''
+        """
         'apply_usb_info',
         'description',
         'device',
@@ -30,27 +30,27 @@ class Inverter:
         'usb_description',
         'usb_info',
         'vid'
-        '''
+        """
 
         buffer = []
         ports = comports()
         for port in ports:
             print(f'''
-        apply_usb_info      | {apply_usb_info: 20} |
-        description         | {description: 20} |
-        device              | {device: 20} |
-        hwid                | {hwid: 20} |
-        interface           | {interface: 20} |
-        location            | {location: 20} |
-        manufacturer        | {manufacturer: 20} |
-        name                | {name: 20} |
-        pid                 | {pid: 20} |
-        product             | {product: 20} |
-        serial_number       | {serial_number: 20} |
-        usb_description     | {usb_description: 20} |
-        usb_info            | {usb_info: 20} |
-        vid                 | {vid: 20} |
-        ''')
+            apply_usb_info      | {port.apply_usb_info: 20} |
+            description         | {port.description: 20} |
+            device              | {port.device: 20} |
+            hwid                | {port.hwid: 20} |
+            interface           | {port.interface: 20} |
+            location            | {port.location: 20} |
+            manufacturer        | {port.manufacturer: 20} |
+            name                | {port.name: 20} |
+            pid                 | {port.pid: 20} |
+            product             | {port.product: 20} |
+            serial_number       | {port.serial_number: 20} |
+            usb_description     | {port.usb_description: 20} |
+            usb_info            | {port.usb_info: 20} |
+            vid                 | {port.vid: 20} |
+            ''')
 
 
 class EP2000(Inverter):
