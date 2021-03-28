@@ -9,23 +9,24 @@ ap.add_argument('-l', '--list', action="store_true")
 args = ap.parse_args()
 
 
-def list_ports():
-    ports = comports()
-    for port in ports:
-        attributes = [
-            'description', 'device', 'hwid', 'interface', 'location', 'manufacturer', 'name', 'pid',
-            'product', 'serial_number', 'vid', 'apply_usb_info', 'usb_description', 'usb_info'
-        ]
-        for attribute in attributes:
-            if hasattr(port, attribute):
-                value = getattr(port, attribute, None)
-                if callable(value):
-                    print(f'{attribute}: {value()}')
-                else:
-                    print(f'{attribute}: {value}')
+class Inverter:
+
+    @staticmethod
+    def list_ports():
+        ports = comports()
+        for port in ports:
+            attributes = [
+                'description', 'device', 'hwid', 'interface', 'location', 'manufacturer', 'name', 'pid',
+                'product', 'serial_number', 'vid', 'apply_usb_info', 'usb_description', 'usb_info'
+            ]
+            print(port)
 
 
-class Inverter(serial.Serial):
+class EP2000(Inverter):
+    pass
+
+
+class Inverter__(serial.Serial):
     INDEX = 0
 
     def __init__(self, **kwargs):
@@ -75,9 +76,9 @@ def main():
     # write status to database
     # exit
     inverters = [
-        Inverter(port='/dev/cuaU0', baudrate=9600, timeout=3.0, write_timeout=1.0),
-        Inverter(port='/dev/cuaU1', baudrate=9600, timeout=3.0, write_timeout=1.0),
-        Inverter(port='/dev/cuaU2', baudrate=9600, timeout=3.0, write_timeout=1.0),
+        Inverter__(port='/dev/cuaU0', baudrate=9600, timeout=3.0, write_timeout=1.0),
+        Inverter__(port='/dev/cuaU1', baudrate=9600, timeout=3.0, write_timeout=1.0),
+        Inverter__(port='/dev/cuaU2', baudrate=9600, timeout=3.0, write_timeout=1.0),
     ]
     """
     reset         :    "0A 10 7D 00 00 01 02 00 01 B9 A7"
@@ -100,6 +101,6 @@ def main():
 
 if __name__ == '__main__':
     if args.list:
-        list_ports()
+        Inverter.list_ports()
     else:
         main()
