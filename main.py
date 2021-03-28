@@ -70,7 +70,7 @@ class EP2000(serial.Serial):
     INDEX = 0
 
     SENSE = ("0A 03 79 18 00 07 9C 28", -1)
-    GET_STATUS = ("0A 03 75 30 00 1B 1E B9", -1)
+    GET_STATUS = ("0A 03 75 30 00 1B 1E B9", 59)
 
     GET_SETTINGS = ("0A 03 79 18 00 0A 5D ED", -1)
     SAVE_SETTINGS = ("0A 10 79 18 00 0A 14", -1)
