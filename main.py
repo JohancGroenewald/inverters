@@ -1,5 +1,6 @@
 import time
 from argparse import ArgumentParser
+from typing import Tuple,
 
 import serial
 from serial.tools.list_ports import comports
@@ -10,6 +11,14 @@ args = ap.parse_args()
 
 
 class Inverters:
+
+    class SerialWriteException(Exception):
+        """Raised when bytes written does not agree with the return count"""
+        pass
+
+    class SerialReadException(Exception):
+        """Raised when bytes read does not agree with the result length"""
+        pass
 
     @staticmethod
     def list_ports():
@@ -51,8 +60,38 @@ class Inverters:
         return ports
 
 
-class EP2000(Inverters):
-    pass
+class EP2000(serial.Serial):
+    """
+    reset         :    "0A 10 7D 00 00 01 02 00 01 B9 A7"
+    SaveReadinData:    "0A 10 79 18 00 0A 14"
+    string textSend1 = "0A 03 75 30 00 1B 1E B9";
+    string textSend2 = "0A 03 79 18 00 0A 5D ED";
+    """
+    INDEX = 0
+    GET_INFO = ("0A 03 75 30 00 1B 1E B9", 59)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.index = Inverter.INDEX
+        Inverter.INDEX += 1
+
+    def send(self, command: Tuple[str, int]):
+        command_string, result_length = command
+        out_buffer = bytes.fromhex(command_string)
+        count = super().write(out_buffer)
+        if count != len(out_buffer):
+            raise Inverters.SerialWriteException(f'Bytes written ({len(out_buffer)}) and written count ({count}) mismatch')
+        return self._receive(result_length)
+
+    def _receive(self, result_length):
+        in_buffer: bytes = super().read(result_length)
+        if result_length != len(in_buffer):
+            raise Inverters.SerialReadException(
+                f'Bytes read ({len(in_buffer)}) and result_length ({result_length}) mismatch')
+        return in_buffer
+
+    def translate(self):
+        pass
 
 
 class Inverter(serial.Serial):
@@ -100,30 +139,22 @@ class Inverter(serial.Serial):
 
 
 def main():
-    # list available serial ports
+    # DONE: list available serial ports
     # connect to inverters
     # query inverters
     # write status to database
     # exit
     inverters = [
-        Inverter(port=port, baudrate=9600, timeout=3.0, write_timeout=1.0) for port in Inverters.port_list()
+        EP2000(port=port, baudrate=9600, timeout=3.0, write_timeout=1.0) for port in Inverters.port_list()
     ]
-    """
-    reset         :    "0A 10 7D 00 00 01 02 00 01 B9 A7"
-    SaveReadinData:    "0A 10 79 18 00 0A 14"
-    string textSend1 = "0A 03 75 30 00 1B 1E B9";
-    string textSend2 = "0A 03 79 18 00 0A 5D ED";
-    """
+
     commands = {
         'info': ("0A 03 75 30 00 1B 1E B9", 59)
     }
     for inverter in inverters:
         print(inverter)
-        command, result_length = commands['info']
-        out_buffer = bytes.fromhex(command)
-        in_buffer: list = inverter.command(out_buffer, result_length)
-        for i, line in enumerate(in_buffer):
-            print(f'in buffer[{i}] {line}')
+        in_buffer = inverter.send(inverter.GET_INFO)
+        print(f'in buffer {in_buffer}')
     pass
 
 
