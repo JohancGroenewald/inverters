@@ -4,6 +4,8 @@ from argparse import ArgumentParser
 import serial
 from serial.tools.list_ports import comports
 
+import pprint
+
 ap = ArgumentParser(description='Query connected inverters',)
 ap.add_argument('-l', '--list', action="store_true")
 args = ap.parse_args()
@@ -19,7 +21,7 @@ class Inverter:
                 'description', 'device', 'hwid', 'interface', 'location', 'manufacturer', 'name', 'pid',
                 'product', 'serial_number', 'vid', 'apply_usb_info', 'usb_description', 'usb_info'
             ]
-            print(port)
+            pprint.pprint(port)
 
 
 class EP2000(Inverter):
