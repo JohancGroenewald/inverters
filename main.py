@@ -35,8 +35,7 @@ class Inverter:
         buffer = []
         ports = comports()
         for port in ports:
-            print(f"""
-            apply_usb_info      | {port.apply_usb_info: 20} |
+            print(f"""apply_usb_info      | {port.apply_usb_info: 20} |
             description         | {port.description: 20} |
             device              | {port.device: 20} |
             hwid                | {port.hwid: 20} |
@@ -49,8 +48,7 @@ class Inverter:
             serial_number       | {port.serial_number: 20} |
             usb_description     | {port.usb_description: 20} |
             usb_info            | {port.usb_info: 20} |
-            vid                 | {port.vid: 20} |
-            """)
+            vid                 | {port.vid: 20} |""")
 
 
 class EP2000(Inverter):
