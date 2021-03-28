@@ -9,7 +9,7 @@ ap.add_argument('-l', '--list', action="store_true")
 args = ap.parse_args()
 
 
-class Inverter:
+class Inverters:
 
     @staticmethod
     def list_ports():
@@ -51,11 +51,11 @@ class Inverter:
         return ports
 
 
-class EP2000(Inverter):
+class EP2000(Inverters):
     pass
 
 
-class Inverter__(serial.Serial):
+class Inverter(serial.Serial):
     INDEX = 0
 
     def __init__(self, **kwargs):
@@ -106,7 +106,7 @@ def main():
     # write status to database
     # exit
     inverters = [
-        Inverter__(port=port, baudrate=9600, timeout=3.0, write_timeout=1.0) for port in Inverter.port_list()
+        Inverter(port=port, baudrate=9600, timeout=3.0, write_timeout=1.0) for port in Inverters.port_list()
     ]
     """
     reset         :    "0A 10 7D 00 00 01 02 00 01 B9 A7"
@@ -129,6 +129,6 @@ def main():
 
 if __name__ == '__main__':
     if args.list:
-        print(Inverter.list_ports())
+        print(Inverters.list_ports())
     else:
         main()
