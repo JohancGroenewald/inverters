@@ -4,8 +4,6 @@ from argparse import ArgumentParser
 import serial
 from serial.tools.list_ports import comports
 
-import pprint
-
 ap = ArgumentParser(description='Query connected inverters',)
 ap.add_argument('-l', '--list', action="store_true")
 args = ap.parse_args()
@@ -33,9 +31,8 @@ class Inverter:
         """
         attributes = [attribute.strip() for attribute in Inverter.list_ports.__doc__.split(',')]
         buffer = []
-        ports = comports()
         padding = 18
-        for port in ports:
+        for port in comports():
             for attribute in attributes:
                 if hasattr(port, attribute):
                     value = getattr(port, attribute, None)
@@ -45,6 +42,13 @@ class Inverter:
                         buffer.append(f'{attribute:{padding}} {str(value)}')
             buffer.append('-' * 40)
         return '\n'.join(buffer)
+
+    @staticmethod
+    def port_list():
+        ports = []
+        for port in comports():
+            ports.append(port.device)
+        return ports
 
 
 class EP2000(Inverter):
@@ -96,14 +100,13 @@ class Inverter__(serial.Serial):
 
 
 def main():
+    # list available serial ports
     # connect to inverters
     # query inverters
     # write status to database
     # exit
     inverters = [
-        Inverter__(port='/dev/cuaU0', baudrate=9600, timeout=3.0, write_timeout=1.0),
-        Inverter__(port='/dev/cuaU1', baudrate=9600, timeout=3.0, write_timeout=1.0),
-        Inverter__(port='/dev/cuaU2', baudrate=9600, timeout=3.0, write_timeout=1.0),
+        Inverter__(port=port, baudrate=9600, timeout=3.0, write_timeout=1.0) for port in Inverter.port_list()
     ]
     """
     reset         :    "0A 10 7D 00 00 01 02 00 01 B9 A7"
