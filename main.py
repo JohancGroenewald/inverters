@@ -252,7 +252,7 @@ def main():
     ]
     for inverter in inverters:
         print(inverter)
-        report = inverter.translate_info(inverter.send(inverter.GET_INFO_A))
+        report = inverter.get_status()
         print(f'report {report}')
     pass
 
