@@ -29,7 +29,7 @@ class Inverters:
         usb_info,
         vid
         """
-        attributes = [attribute.strip() for attribute in Inverter.list_ports.__doc__.split(',')]
+        attributes = [attribute.strip() for attribute in Inverters.list_ports.__doc__.split(',')]
         buffer = []
         padding = 18
         for port in comports():
