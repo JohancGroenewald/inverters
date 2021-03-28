@@ -16,26 +16,34 @@ class Inverter:
     @staticmethod
     def list_ports():
         """
-        'apply_usb_info',
-        'description',
-        'device',
-        'hwid',
-        'interface',
-        'location',
-        'manufacturer',
-        'name',
-        'pid',
-        'product',
-        'serial_number',
-        'usb_description',
-        'usb_info',
-        'vid'
+        apply_usb_info,
+        description,
+        device,
+        hwid,
+        interface,
+        location,
+        manufacturer,
+        name,
+        pid,
+        product,
+        serial_number,
+        usb_description,
+        usb_info,
+        vid
         """
-
+        attributes = [attribute.strip() for attribute in __doc__.split(',')]
         buffer = []
         ports = comports()
         for port in ports:
-            print(f"""apply_usb_info {port.apply_usb_info}""")
+            buffer.append('-'*40)
+            for attribute in attributes:
+                if hasattr(port, attribute):
+                    value = getattr(port, attribute, None)
+                    if callable(value):
+                        buffer.append(f'{attribute}: {value()}')
+                    else:
+                        buffer.append(f'{attribute}: {value}')
+        return '\n'.join(buffer)
 
 
 class EP2000(Inverter):
@@ -117,6 +125,6 @@ def main():
 
 if __name__ == '__main__':
     if args.list:
-        Inverter.list_ports()
+        print(Inverter.list_ports())
     else:
         main()
