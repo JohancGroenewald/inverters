@@ -39,9 +39,9 @@ class Inverter:
                 if hasattr(port, attribute):
                     value = getattr(port, attribute, None)
                     if callable(value):
-                        buffer.append(f'{attribute: 14} {value():14}')
+                        buffer.append(f'{attribute: 14} {str(value()):14}')
                     else:
-                        buffer.append(f'{attribute: 14} {value:14}')
+                        buffer.append(f'{attribute: 14} {str(value):14}')
             buffer.append('-' * 40)
         return '\n'.join(buffer)
 
