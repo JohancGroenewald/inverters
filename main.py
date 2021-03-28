@@ -98,14 +98,12 @@ class EP2000(serial.Serial):
         command_string, result_length = command
         out_buffer = bytes.fromhex(command_string)
         count = super().write(out_buffer)
-        print(count)
         if count != len(out_buffer):
             raise Inverters.SerialWriteException(f'Bytes written ({len(out_buffer)}) and written count ({count}) mismatch')
         return self._receive(result_length)
 
     def _receive(self, result_length):
         in_buffer: bytes = super().read(result_length)
-        print(len(in_buffer))
         if result_length != -1 and result_length != len(in_buffer):
             raise Inverters.SerialReadException(
                 f'Bytes read ({len(in_buffer)}) and result_length ({result_length}) mismatch')
@@ -146,11 +144,38 @@ class EP2000(serial.Serial):
           return (int) maxValue2 + (int) maxValue1 == num1;
         }
         """
-        crc = None
+        crc = False
         array1 = in_buffer[:]
         array2 = bytes(len(in_buffer) - 2)
-        check = int(in_buffer[-2]) + int(in_buffer[-1])
+        check: int = int(in_buffer[-2]) + int(in_buffer[-1])
         print(int(in_buffer[-2]), int(in_buffer[-1]), check)
+        maxValue1 = int(255).to_bytes(1, byteorder='big')
+        maxValue2 = int(255).to_bytes(1, byteorder='big')
+        num2 = int(1).to_bytes(1, byteorder='big')
+        num3 = int(160).to_bytes(1, byteorder='big')
+
+        print(type(num2))
+
+        """
+        foreach (byte num4 in numArray2)
+        {
+            maxValue1 ^= num4;
+            for (int index = 0; index <= 7; ++index)
+            {
+                int num5 = (int) maxValue2;
+                byte num6 = maxValue1;
+                maxValue2 >>= 1;
+                maxValue1 >>= 1;
+                if ((num5 & 1) == 1)
+                maxValue1 |= (byte) 128;
+                if (((int) num6 & 1) == 1)
+                {
+                    maxValue2 ^= num3;
+                    maxValue1 ^= num2;
+                }
+            }
+        }
+        """
 
         return crc
 
