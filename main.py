@@ -98,12 +98,14 @@ class EP2000(serial.Serial):
         command_string, result_length = command
         out_buffer = bytes.fromhex(command_string)
         count = super().write(out_buffer)
+        print(count)
         if count != len(out_buffer):
             raise Inverters.SerialWriteException(f'Bytes written ({len(out_buffer)}) and written count ({count}) mismatch')
         return self._receive(result_length)
 
     def _receive(self, result_length):
         in_buffer: bytes = super().read(result_length)
+        print(len(in_buffer))
         if result_length != -1 and result_length != len(in_buffer):
             raise Inverters.SerialReadException(
                 f'Bytes read ({len(in_buffer)}) and result_length ({result_length}) mismatch')
