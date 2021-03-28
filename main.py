@@ -86,12 +86,12 @@ class EP2000(serial.Serial):
 
     def get_status(self) -> dict:
         status = {}
-        self._translate_status(
-            self._preprocess_status(
-                self._send(EP2000.GET_STATUS)
-            ),
-            status
-        )
+
+        in_buffer = self._send(EP2000.GET_STATUS)
+        if not self._valid_crc(in_buffer):
+            return 'CRC failed'
+        in_buffer = self._preprocess_status(in_buffer)
+        self._translate_status(in_buffer, status)
         return status
 
     def _send(self, command: Tuple[str, int]):
@@ -110,6 +110,49 @@ class EP2000(serial.Serial):
             raise Inverters.SerialReadException(
                 f'Bytes read ({len(in_buffer)}) and result_length ({result_length}) mismatch')
         return in_buffer
+
+    def _valid_crc(self, in_buffer: bytes):
+        """
+        public bool CRCCheck(byte[] readedBytes)
+        {
+          byte[] numArray1 = readedBytes;
+          byte[] numArray2 = new byte[numArray1.Length - 2];
+          int num1 = (int) numArray1[numArray1.Length - 2] + (int) numArray1[numArray1.Length - 1];
+          for (int index = 0; index < numArray1.Length - 2; ++index)
+              numArray2[index] = numArray1[index];
+          byte maxValue1 = byte.MaxValue;
+          byte maxValue2 = byte.MaxValue;
+          byte num2 = 1;
+          byte num3 = 160;
+          foreach (byte num4 in numArray2)
+          {
+            maxValue1 ^= num4;
+            for (int index = 0; index <= 7; ++index)
+            {
+              int num5 = (int) maxValue2;
+              byte num6 = maxValue1;
+              maxValue2 >>= 1;
+              maxValue1 >>= 1;
+              if ((num5 & 1) == 1)
+                maxValue1 |= (byte) 128;
+              if (((int) num6 & 1) == 1)
+              {
+                maxValue2 ^= num3;
+                maxValue1 ^= num2;
+              }
+            }
+          }
+          byte[] numArray3 = new byte[2]{ maxValue2, maxValue1 };
+          return (int) maxValue2 + (int) maxValue1 == num1;
+        }
+        """
+        crc = None
+        array1 = in_buffer[:]
+        array2 = bytes(len(in_buffer) - 2)
+        check = int(in_buffer[-2]) + int(in_buffer[-1])
+        print(int(in_buffer[-2]), int(in_buffer[-1]), check)
+
+        return crc
 
     def _preprocess_status(self, in_buffer: bytes):
         """
