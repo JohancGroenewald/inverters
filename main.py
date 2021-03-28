@@ -34,14 +34,15 @@ class Inverter:
         attributes = [attribute.strip() for attribute in Inverter.list_ports.__doc__.split(',')]
         buffer = []
         ports = comports()
+        padding = 18
         for port in ports:
             for attribute in attributes:
                 if hasattr(port, attribute):
                     value = getattr(port, attribute, None)
                     if callable(value):
-                        buffer.append(f'{attribute:20} {str(value())}')
+                        buffer.append(f'{attribute:{padding}} {str(value())}')
                     else:
-                        buffer.append(f'{attribute:20} {str(value)}')
+                        buffer.append(f'{attribute:{padding}} {str(value)}')
             buffer.append('-' * 40)
         return '\n'.join(buffer)
 
