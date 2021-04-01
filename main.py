@@ -157,10 +157,10 @@ class EP2000(serial.Serial):
 
         # ep2000Model.MachineType = arrRo[0];
         index = 0
-        status['MachineType'] = (data[index], f'{data[index]}')
+        status['MachineType'] = (index, data[index], f'{data[index]}')
         # ep2000Model.SoftwareVersion = Convert.ToInt16(arrRo[1], 16).ToString();
         index += 1
-        status['SoftwareVersion'] = (data[index], f'{data[index]}')
+        status['SoftwareVersion'] = (index, data[index], f'{data[index]}')
         # ep2000Model.WorkState = Enum.GetName(typeof (EPWokrState), (object) Convert.ToInt16(arrRo[2], 16));
         EP_WORK_STATE = {
             1: 'INIT',
@@ -173,37 +173,37 @@ class EP2000(serial.Serial):
             8: 'SOFT_START',
         }
         index += 1
-        status['WorkState'] = (data[index], EP_WORK_STATE.get(data[index], 'N/A'))
+        status['WorkState'] = (index, data[index], EP_WORK_STATE.get(data[index], 'N/A'))
         # ep2000Model.BatClass = Convert.ToInt16(arrRo[3], 16).ToString() + "V";
         index += 1
-        status['BatClass'] = (data[index], data[index])
+        status['BatClass'] = (index, data[index], data[index])
         # ep2000Model.RatedPower = Convert.ToInt16(arrRo[4], 16).ToString();
         index += 1
-        status['RatedPower'] = (data[index], data[index])
+        status['RatedPower'] = (index, data[index], data[index])
         # ep2000Model.GridVoltage = ((double) Convert.ToInt16(arrRo[5], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['GridVoltage'] = (data[index], round(data[index] * 0.1, 1))
+        status['GridVoltage'] = (index, data[index], round(data[index] * 0.1, 1))
         # ep2000Model.GridFrequency = ((double) Convert.ToInt16(arrRo[6], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['GridFrequency'] = (data[index], round(data[index] * 0.1, 1))
+        status['GridFrequency'] = (index, data[index], round(data[index] * 0.1, 1))
         # ep2000Model.OutputVoltage = ((double) Convert.ToInt16(arrRo[7], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['OutputVoltage'] = (data[index], round(data[index] * 0.1, 1))
+        status['OutputVoltage'] = (index, data[index], round(data[index] * 0.1, 1))
         # ep2000Model.OutputFrequency = ((double) Convert.ToInt16(arrRo[8], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['OutputFrequency'] = (data[index], round(data[index] * 0.1, 1))
+        status['OutputFrequency'] = (index, data[index], round(data[index] * 0.1, 1))
         # ep2000Model.LoadCurrent = ((double) Convert.ToInt16(arrRo[9], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['LoadCurrent'] = (data[index], round(data[index] * 0.1, 1))
+        status['LoadCurrent'] = (index, data[index], round(data[index] * 0.1, 1))
         # ep2000Model.LoadPower = Convert.ToInt16(arrRo[10], 16).ToString();
         index += 1
-        status['LoadPower'] = (data[index], data[index])
+        status['LoadPower'] = (index, data[index], data[index])
         # Undocumented 11
         index += 1
-        status[f'Undocumented:{index}'] = (data[index], data[index])
+        status[f'Undocumented:{index}'] = (index, data[index], data[index])
         # ep2000Model.LoadPercent = Convert.ToInt16(arrRo[12], 16).ToString();
         index += 1
-        status['LoadPercent'] = (data[index], data[index])
+        status['LoadPercent'] = (index, data[index], data[index])
         # ep2000Model.LoadState = Enum.GetName(typeof (EPLoadState), (object) Convert.ToInt16(arrRo[13], 16));
         EP_LOAD_STATE = {
             0: 'LOAD_NORMAL',
@@ -211,22 +211,22 @@ class EP2000(serial.Serial):
             2: 'OVER_LOAD',
         }
         index += 1
-        status['LoadState'] = (data[index], EP_LOAD_STATE.get(data[index], 'N/A'))
+        status['LoadState'] = (index, data[index], EP_LOAD_STATE.get(data[index], 'N/A'))
         # ep2000Model.BatteryVoltage = ((double) Convert.ToInt16(arrRo[14], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['BatteryVoltage'] = (data[index], round(data[index] * 0.1, 1))
+        status['BatteryVoltage'] = (index, data[index], round(data[index] * 0.1, 1))
         # ep2000Model.BatteryCurrent = ((double) Convert.ToInt16(arrRo[15], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['BatteryCurrent'] = (data[index], round(data[index] * 0.1, 1))
+        status['BatteryCurrent'] = (index, data[index], round(data[index] * 0.1, 1))
         # Undocumented 16
         index += 1
-        status[f'Undocumented:{index}'] = (data[index], data[index])
+        status[f'Undocumented:{index}'] = (index, data[index], data[index])
         # ep2000Model.BatterySoc = Convert.ToInt16(arrRo[17], 16).ToString();
         index += 1
-        status['BatterySoc'] = (data[index], data[index])
+        status['BatterySoc'] = (index, data[index], data[index])
         # ep2000Model.TransformerTemp = Convert.ToInt16(arrRo[18], 16).ToString();
         index += 1
-        status['TransformerTemp'] = (data[index], data[index])
+        status['TransformerTemp'] = (index, data[index], data[index])
         # ep2000Model.AvrState = Enum.GetName(typeof (EPAVRState), (object) Convert.ToInt16(arrRo[19], 16));
         EP_AVR_STATE = {
             0: 'AVR_BYPASS',
@@ -234,7 +234,7 @@ class EP2000(serial.Serial):
             2: 'AVR_BOOST'
         }
         index += 1
-        status['AvrState'] = (data[index], EP_AVR_STATE.get(data[index], 'N/A'))
+        status['AvrState'] = (index, data[index], EP_AVR_STATE.get(data[index], 'N/A'))
         # ep2000Model.BuzzerState = Enum.GetName(typeof (EPBuzzerState), (object) Convert.ToInt16(arrRo[20], 16));
         EP_BUZZER_STATE = {
             0: 'BUZZ_OFF',
@@ -242,7 +242,7 @@ class EP2000(serial.Serial):
             2: 'BUZZ_ALARM',
         }
         index += 1
-        status['BuzzerState'] = (data[index], EP_BUZZER_STATE.get(data[index], 'N/A'))
+        status['BuzzerState'] = (index, data[index], EP_BUZZER_STATE.get(data[index], 'N/A'))
         # ep2000Model.Fault = Ep2000Model.FaultDic[(int) Convert.ToInt16(arrRo[21], 16)];
         FAULT_DICTIONARY = {0: "", 1: "Fan is locked when inverter is off", 2: "Inverter transformer over temperature",
                             3: "battery voltage is too high", 4: "battery voltage is too low",
@@ -266,10 +266,10 @@ class EP2000(serial.Serial):
                             74: "Solar charger stops due to over load", 75: "Solar charger over temperature",
                             76: "PV charger communication error", 77: "Parameter error"}
         index += 1
-        status['Fault'] = (data[index], FAULT_DICTIONARY.get(data[index], 'N/A'))
+        status['Fault'] = (index, data[index], FAULT_DICTIONARY.get(data[index], 'N/A'))
         # ep2000Model.Alarm = Convert.ToString(Convert.ToInt16(arrRo[22], 16), 2).PadLeft(4, '0');
         index += 1
-        status['Alarm'] = (data[index], f'{data[index]:04}')
+        status['Alarm'] = (index, data[index], f'{data[index]:04}')
         # ep2000Model.ChargeState = Enum.GetName(typeof (EPChargeState), (object) Convert.ToInt16(arrRo[23], 16));
         EP_CHARGE_STATE = {
             0: 'CC',
@@ -277,29 +277,30 @@ class EP2000(serial.Serial):
             2: 'FV',
         }
         index += 1
-        status['ChargeState'] = (data[index], EP_CHARGE_STATE.get(data[index], 'N/A'))
+        status['ChargeState'] = (index, data[index], EP_CHARGE_STATE.get(data[index], 'N/A'))
         # ep2000Model.ChargeFlag = Enum.GetName(typeof (EPChargeFlag), (object) Convert.ToInt16(arrRo[24], 16));
         EP_CHARGE_FLAG = {
             0: 'UN_CHARGE',
             1: 'CHARGED',
         }
         index += 1
-        status['ChargeFlag'] = (data[index], EP_CHARGE_FLAG.get(data[index], 'N/A'))
+        status['ChargeFlag'] = (index, data[index], EP_CHARGE_FLAG.get(data[index], 'N/A'))
         # ep2000Model.MainSw = Enum.GetName(typeof (EPMainSW), (object) Convert.ToInt16(arrRo[25], 16));
         EP_MAIN_SWITCH = {
             0: 'OFF',
             1: 'ON',
         }
         index += 1
-        status['MainSwitch'] = (data[index], EP_MAIN_SWITCH.get(data[index], 'N/A'))
+        status['MainSwitch'] = (index, data[index], EP_MAIN_SWITCH.get(data[index], 'N/A'))
         # ep2000Model.DelayType = Ep2000Server.Rangelist.FirstOrDefault<EffectiveRange>(
         # (Func<EffectiveRange, bool>) (s => s.Kind == "Ep2000Pro" && s.Name == "DelayType" && s.Id == (int) Convert.ToInt16(arrRo[26], 16)))?.Value;
+        # ep2000Model.DelayType = Ep2000Server.Rangelist.FirstOrDefault<EffectiveRange>(new Func<EffectiveRange, bool>((object) cDisplayClass40, __methodptr(\u003CGetDataFromProt\u003Eb__0)))?.Value;
         DELAY_TYPE = {
             0: 'STANDARD',
             1: 'LONG_DELAY',
         }
         index += 1
-        status['DelayType'] = (data[index], DELAY_TYPE.get(data[index], 'N/A'))
+        status['DelayType'] = (index, data[index], DELAY_TYPE.get(data[index], 'N/A'))
         return status
 
     def _send(self, command: Tuple[str, int]):
