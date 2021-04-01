@@ -269,7 +269,7 @@ class EP2000(serial.Serial):
         status['Fault'] = (data[index], FAULT_DICTIONARY.get(data[index], 'N/A'))
         # ep2000Model.Alarm = Convert.ToString(Convert.ToInt16(arrRo[22], 16), 2).PadLeft(4, '0');
         index += 1
-        status['Alarm'] = (data[index], data[index])
+        status['Alarm'] = (data[index], f'{data[index]:04}')
         # ep2000Model.ChargeState = Enum.GetName(typeof (EPChargeState), (object) Convert.ToInt16(arrRo[23], 16));
         EP_CHARGE_STATE = {
             0: 'CC',
@@ -455,7 +455,7 @@ def main():
     # write status to database
     # exit
     inverters = [
-        EP2000(port=port, baudrate=9600, timeout=3.0, write_timeout=1.0) for port in Inverters.port_list()[:1]
+        EP2000(port=port, baudrate=9600, timeout=3.0, write_timeout=1.0) for port in Inverters.port_list()
     ]
     for i in range(len(inverters)):
         inverter = inverters[i]
