@@ -63,7 +63,7 @@ class Inverters:
 class EP2000(serial.Serial):
     INDEX = 0
 
-    SENSE = ("0A 03 79 18 00 07 9C 28", -1)
+    SENSE = ("0A 03 79 18 00 07 9C 28", 19)
     GET_STATUS = ("0A 03 75 30 00 1B 1E B9", 59)
 
     GET_SETTINGS = ("0A 03 79 18 00 0A 5D ED", -1)
@@ -80,9 +80,9 @@ class EP2000(serial.Serial):
 
     def sense(self) -> dict:
         """
-        10 03 14 00 00 00 220 00 105 00 141 00 136 00 20 00 00 48 245
-        10 03 14 00 00 00 220 00 105 00 141 00 136 00 20 00 00 48 245
-        10 03 14 00 00 00 220 00 105 00 141 00 136 00 20 00 00 48 245
+         0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16 [ 17  18] = 19 Bytes
+        0A  03  0E  00  00  00  DC  00  69  00  8D  00  88  00  14  00  00 [ 30  F5]
+        10  03  14  00  00  00 220  00 105  00 141  00 136  00  20  00  00 [ 48 245]
         """
         status = {}
 
@@ -93,7 +93,7 @@ class EP2000(serial.Serial):
         self._translate_status(in_buffer, status)
         return status
 
-    def get_status(self) -> dict:
+    def status(self) -> dict:
         status = {}
 
         in_buffer = self._send(EP2000.GET_STATUS)
@@ -340,7 +340,7 @@ def main():
     ]
     for inverter in inverters:
         print(inverter)
-        report = inverter.sense()
+        report = inverter.status()
         print(f'report {report}')
     pass
 
