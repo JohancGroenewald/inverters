@@ -1,6 +1,7 @@
 import time
 from argparse import ArgumentParser
 from typing import Tuple
+from decimal import Decimal
 import pprint
 
 import serial
@@ -144,7 +145,7 @@ class EP2000(serial.Serial):
 
         status['hex-string'] = ' '.join([f'{byte:02X}' for byte in in_buffer])
         data = [
-            (int.from_bytes(in_buffer[i:i+2], byteorder=BYTE_ORDER)) for i in range(0, len(in_buffer), 2)
+            Decimal(int.from_bytes(in_buffer[i:i+2], byteorder=BYTE_ORDER)) for i in range(0, len(in_buffer), 2)
         ]
         status['data'] = data
         status['Model'] = 'EP2000'
@@ -170,7 +171,7 @@ class EP2000(serial.Serial):
         status['WorkState'] = EP_WORK_STATE.get(data[index], 'N/A')
         # ep2000Model.BatClass = Convert.ToInt16(arrRo[3], 16).ToString() + "V";
         index += 1
-        status['BatClass'] = f'{data[index]}V'
+        status['BatClass'] = {data[index]}
         # ep2000Model.RatedPower = Convert.ToInt16(arrRo[4], 16).ToString();
         index += 1
         status['RatedPower'] = data[index]
@@ -191,13 +192,18 @@ class EP2000(serial.Serial):
         status['LoadCurrent'] = data[index] * 0.1
         # ep2000Model.LoadPower = Convert.ToInt16(arrRo[10], 16).ToString();
         index += 1
-        # status[''] = ''
+        status['LoadPower'] = data[index]
         # ep2000Model.LoadPercent = Convert.ToInt16(arrRo[12], 16).ToString();
         index += 1
-        # status[''] = ''
+        status['LoadPercent'] = data[index]
         # ep2000Model.LoadState = Enum.GetName(typeof (EPLoadState), (object) Convert.ToInt16(arrRo[13], 16));
+        EP_LOAD_STATE = {
+            0: 'LOAD_NORMAL',
+            1: 'LOAD_ALARM',
+            2: 'OVER_LOAD',
+        }
         index += 1
-        # status[''] = ''
+        status['LoadState'] = EP_LOAD_STATE.get(data[index], 'N/A')
         # ep2000Model.BatteryVoltage = ((double) Convert.ToInt16(arrRo[14], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
         status['BatteryVoltage'] = data[index] * 0.1
@@ -206,34 +212,34 @@ class EP2000(serial.Serial):
         status['BatteryCurrent'] = data[index] * 0.1
         # ep2000Model.BatterySoc = Convert.ToInt16(arrRo[17], 16).ToString();
         index += 1
-        # status[''] = ''
+        # status['BatterySoc'] = data[index]
         # ep2000Model.TransformerTemp = Convert.ToInt16(arrRo[18], 16).ToString();
         index += 1
-        # status[''] = ''
+        # status['TransformerTemp'] = data[index]
         # ep2000Model.AvrState = Enum.GetName(typeof (EPAVRState), (object) Convert.ToInt16(arrRo[19], 16));
         index += 1
-        # status[''] = ''
+        # status['AvrState'] = data[index]
         # ep2000Model.BuzzerState = Enum.GetName(typeof (EPBuzzerState), (object) Convert.ToInt16(arrRo[20], 16));
         index += 1
-        # status[''] = ''
+        # status['BuzzerState'] = data[index]
         # ep2000Model.Fault = Ep2000Model.FaultDic[(int) Convert.ToInt16(arrRo[21], 16)];
         index += 1
-        # status[''] = ''
+        # status['Fault'] = data[index]
         # ep2000Model.Alarm = Convert.ToString(Convert.ToInt16(arrRo[22], 16), 2).PadLeft(4, '0');
         index += 1
-        # status[''] = ''
+        # status['Alarm'] = data[index]
         # ep2000Model.ChargeState = Enum.GetName(typeof (EPChargeState), (object) Convert.ToInt16(arrRo[23], 16));
         index += 1
-        # status[''] = ''
+        # status['ChargeState'] = data[index]
         # ep2000Model.ChargeFlag = Enum.GetName(typeof (EPChargeFlag), (object) Convert.ToInt16(arrRo[24], 16));
         index += 1
-        # status[''] = ''
+        # status['ChargeFlag'] = data[index]
         # ep2000Model.MainSw = Enum.GetName(typeof (EPMainSW), (object) Convert.ToInt16(arrRo[25], 16));
         index += 1
-        # status[''] = ''
+        # status['MainSw'] = data[index]
         # ep2000Model.DelayType = Ep2000Server.Rangelist.FirstOrDefault<EffectiveRange>((Func<EffectiveRange, bool>) (s => s.Kind == "Ep2000Pro" && s.Name == "DelayType" && s.Id == (int) Convert.ToInt16(arrRo[26], 16)))?.Value;
         index += 1
-        # status[''] = ''
+        # status['DelayType'] = data[index]
 
 
         return status
