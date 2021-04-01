@@ -9,6 +9,8 @@ ap = ArgumentParser(description='Query connected inverters',)
 ap.add_argument('-l', '--list', action="store_true")
 args = ap.parse_args()
 
+BYTE_ORDER = 'big'
+
 
 class Inverters:
 
@@ -141,7 +143,7 @@ class EP2000(serial.Serial):
 
         status['hex-string'] = ' '.join([f'{byte:02X}' for byte in in_buffer])
         data = [
-            (int.from_bytes(in_buffer[i:i+2], byteorder='little')) for i in range(0, len(in_buffer), 2)
+            (int.from_bytes(in_buffer[i:i+2], byteorder=BYTE_ORDER)) for i in range(0, len(in_buffer), 2)
         ]
         status['data'] = data
         status['Model'] = 'ep2000'
