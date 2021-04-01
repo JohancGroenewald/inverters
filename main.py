@@ -142,7 +142,7 @@ class EP2000(serial.Serial):
         """
 
         data = []
-        for i in range(start=0, stop=len(in_buffer), step=2):
+        for i in range(0, len(in_buffer), 2):
             data.append(int.from_bytes(in_buffer[i-1:1], byteorder='little'))
 
         status['data'] = data
