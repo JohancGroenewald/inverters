@@ -150,9 +150,9 @@ class EP2000(serial.Serial):
         ]
 
         status['meta-data'] = {
-            status['hex-string']: ' '.join([f'{byte:02X}' for byte in in_buffer]),
-            status['data']: data,
-            status['Model']: EP2000.MODEL,
+            'hex-string': ' '.join([f'{byte:02X}' for byte in in_buffer]),
+            'data': data,
+            'Model': EP2000.MODEL,
         }
 
         # ep2000Model.MachineType = arrRo[0];
