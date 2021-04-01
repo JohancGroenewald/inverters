@@ -471,7 +471,7 @@ def main():
         status = inverter.status()
         for key, value in status.items():
             _index, _raw_value, _str_value = value
-            pprint.pprint(f'{key:16}: {_index:02}: {_raw_value:<5}, {_str_value}')
+            pprint.pprint(f'{key:16}: {_index:02}: {str(_raw_value):< 5}, {_str_value}')
     pass
 
 
