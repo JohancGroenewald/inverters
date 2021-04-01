@@ -171,7 +171,7 @@ class EP2000(serial.Serial):
         status['WorkState'] = EP_WORK_STATE.get(data[index], 'N/A')
         # ep2000Model.BatClass = Convert.ToInt16(arrRo[3], 16).ToString() + "V";
         index += 1
-        status['BatClass'] = {data[index]}
+        status['BatClass'] = data[index]
         # ep2000Model.RatedPower = Convert.ToInt16(arrRo[4], 16).ToString();
         index += 1
         status['RatedPower'] = data[index]
@@ -410,7 +410,8 @@ def main():
         sense = inverter.sense()
         pprint.pprint(f'sense {sense}')
         status = inverter.status()
-        pprint.pprint(f'status {status}')
+        for key, value in status.items():
+            pprint.pprint(f'key: {value}')
     pass
 
 
