@@ -244,7 +244,7 @@ class EP2000(serial.Serial):
         status['MainSw'] = (data[index], data[index])
         # ep2000Model.DelayType = Ep2000Server.Rangelist.FirstOrDefault<EffectiveRange>((Func<EffectiveRange, bool>) (s => s.Kind == "Ep2000Pro" && s.Name == "DelayType" && s.Id == (int) Convert.ToInt16(arrRo[26], 16)))?.Value;
         index += 1
-        status['DelayType'] = (data[index], ata[index])
+        status['DelayType'] = (data[index], data[index])
 
 
         return status
