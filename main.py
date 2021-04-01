@@ -470,7 +470,8 @@ def main():
         pprint.pprint(f'sense {sense}')
         status = inverter.status()
         for key, value in status.items():
-            pprint.pprint(f'{key:16}: {value}')
+            _index, _raw_value, _str_value = value
+            pprint.pprint(f'{key:16}: {_index:02}: {_raw_value:<5}, {_str_value}')
     pass
 
 
