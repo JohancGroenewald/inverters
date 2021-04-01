@@ -108,10 +108,14 @@ class EP2000(serial.Serial):
 
     def _receive(self, result_length):
         if result_length == -1:
-            super().timeout = None
-            result_length = 1
-        in_buffer: bytes = super().read(result_length)
-        if result_length != -1 and result_length != len(in_buffer):
+            bytes_to_read = 100
+        else:
+            bytes_to_read = result_length
+        in_buffer: bytes = super().read(bytes_to_read)
+        if result_length == -1:
+            result_length = len(in_buffer)
+            print(f'PEEK LENGTH: {result_length}')
+        if result_length != len(in_buffer):
             raise Inverters.SerialReadException(
                 f'Bytes read ({len(in_buffer)}) and result_length ({result_length}) mismatch')
         return in_buffer
