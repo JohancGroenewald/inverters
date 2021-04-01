@@ -107,6 +107,9 @@ class EP2000(serial.Serial):
         return self._receive(result_length)
 
     def _receive(self, result_length):
+        if result_length == -1:
+            super().timeout = None
+            result_length = 1
         in_buffer: bytes = super().read(result_length)
         if result_length != -1 and result_length != len(in_buffer):
             raise Inverters.SerialReadException(
