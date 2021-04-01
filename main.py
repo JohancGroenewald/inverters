@@ -145,7 +145,7 @@ class EP2000(serial.Serial):
 
         status['hex-string'] = ' '.join([f'{byte:02X}' for byte in in_buffer])
         data = [
-            Decimal(int.from_bytes(in_buffer[i:i+2], byteorder=BYTE_ORDER)) for i in range(0, len(in_buffer), 2)
+            (int.from_bytes(in_buffer[i:i+2], byteorder=BYTE_ORDER)) for i in range(0, len(in_buffer), 2)
         ]
         status['data'] = data
         status['Model'] = 'EP2000'
@@ -177,19 +177,19 @@ class EP2000(serial.Serial):
         status['RatedPower'] = data[index]
         # ep2000Model.GridVoltage = ((double) Convert.ToInt16(arrRo[5], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['GridVoltage'] = data[index] * 0.1
+        status['GridVoltage'] = Decimal(data[index] * 0.1)
         # ep2000Model.GridFrequency = ((double) Convert.ToInt16(arrRo[6], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['GridFrequency'] = data[index] * 0.1
+        status['GridFrequency'] = Decimal(data[index] * 0.1)
         # ep2000Model.OutputVoltage = ((double) Convert.ToInt16(arrRo[7], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['OutputVoltage'] = data[index] * 0.1
+        status['OutputVoltage'] = Decimal(data[index] * 0.1)
         # ep2000Model.OutputFrequency = ((double) Convert.ToInt16(arrRo[8], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['OutputFrequency'] = data[index] * 0.1
+        status['OutputFrequency'] = Decimal(data[index] * 0.1)
         # ep2000Model.LoadCurrent = ((double) Convert.ToInt16(arrRo[9], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['LoadCurrent'] = data[index] * 0.1
+        status['LoadCurrent'] = Decimal(data[index] * 0.1)
         # ep2000Model.LoadPower = Convert.ToInt16(arrRo[10], 16).ToString();
         index += 1
         status['LoadPower'] = data[index]
@@ -206,10 +206,10 @@ class EP2000(serial.Serial):
         status['LoadState'] = EP_LOAD_STATE.get(data[index], 'N/A')
         # ep2000Model.BatteryVoltage = ((double) Convert.ToInt16(arrRo[14], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['BatteryVoltage'] = data[index] * 0.1
+        status['BatteryVoltage'] = Decimal(data[index] * 0.1)
         # ep2000Model.BatteryCurrent = ((double) Convert.ToInt16(arrRo[15], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['BatteryCurrent'] = data[index] * 0.1
+        status['BatteryCurrent'] = Decimal(data[index] * 0.1)
         # ep2000Model.BatterySoc = Convert.ToInt16(arrRo[17], 16).ToString();
         index += 1
         # status['BatterySoc'] = data[index]
