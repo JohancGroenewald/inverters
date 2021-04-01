@@ -244,20 +244,54 @@ class EP2000(serial.Serial):
         index += 1
         status['BuzzerState'] = (data[index], EP_BUZZER_STATE.get(data[index], 'N/A'))
         # ep2000Model.Fault = Ep2000Model.FaultDic[(int) Convert.ToInt16(arrRo[21], 16)];
+        FAULT_DICTIONARY = {0: "", 1: "Fan is locked when inverter is off", 2: "Inverter transformer over temperature",
+                            3: "battery voltage is too high", 4: "battery voltage is too low",
+                            5: "Output short circuited", 6: "Inverter output voltage is high", 7: "Overload time out",
+                            8: "Inverter bus voltage is too high", 9: "Bus soft start failed", 11: "Main relay failed",
+                            21: "Inverter output voltage sensor error", 22: "Inverter grid voltage sensor error",
+                            23: "Inverter output current sensor error", 24: "Inverter grid current sensor error",
+                            25: "Inverter load current sensor error", 26: "Inverter grid over current error",
+                            27: "Inverter radiator over temperature", 31: "Solar charger battery voltage class error",
+                            32: "Solar charger current sensor error", 33: "Solar charger current is uncontrollable",
+                            41: "Inverter grid voltage is low", 42: "Inverter grid voltage is high",
+                            43: "Inverter grid under frequency", 44: "Inverter grid over frequency",
+                            51: "Inverter over current protection error", 52: "Inverter bus voltage is too low",
+                            53: "Inverter soft start failed", 54: "Over DC voltage in AC output",
+                            56: "Battery connection is open", 57: "Inverter control current sensor error",
+                            58: "Inverter output voltage is too low", 61: "Fan is locked when inverter is on.",
+                            62: "Fan2 is locked when inverter is on.", 63: "Battery is over-charged.",
+                            64: "Low battery", 67: "Overload", 70: "Output power Derating",
+                            72: "Solar charger stops due to low battery",
+                            73: "Solar charger stops due to high PV voltage",
+                            74: "Solar charger stops due to over load", 75: "Solar charger over temperature",
+                            76: "PV charger communication error", 77: "Parameter error"}
         index += 1
-        status['Fault'] = (data[index], data[index])
+        status['Fault'] = (data[index], FAULT_DICTIONARY.get(data[index], 'N/A'))
         # ep2000Model.Alarm = Convert.ToString(Convert.ToInt16(arrRo[22], 16), 2).PadLeft(4, '0');
         index += 1
         status['Alarm'] = (data[index], data[index])
         # ep2000Model.ChargeState = Enum.GetName(typeof (EPChargeState), (object) Convert.ToInt16(arrRo[23], 16));
+        EP_CHARGE_STATE = {
+            0: 'CC',
+            1: 'CV',
+            2: 'FV',
+        }
         index += 1
-        status['ChargeState'] = (data[index], data[index])
+        status['ChargeState'] = (data[index], EP_CHARGE_STATE.get(data[index], 'N/A'))
         # ep2000Model.ChargeFlag = Enum.GetName(typeof (EPChargeFlag), (object) Convert.ToInt16(arrRo[24], 16));
+        EP_CHARGE_FLAG = {
+            0: 'UN_CHARGE',
+            1: 'CHARGED',
+        }
         index += 1
-        status['ChargeFlag'] = (data[index], data[index])
+        status['ChargeFlag'] = (data[index], EP_CHARGE_FLAG.get(data[index], 'N/A'))
         # ep2000Model.MainSw = Enum.GetName(typeof (EPMainSW), (object) Convert.ToInt16(arrRo[25], 16));
+        EP_MAIN_SWITCH = {
+            0: 'OFF',
+            1: 'ON',
+        }
         index += 1
-        status['MainSw'] = (data[index], data[index])
+        status['MainSwitch'] = (data[index], EP_MAIN_SWITCH.get(data[index], 'N/A'))
         # ep2000Model.DelayType = Ep2000Server.Rangelist.FirstOrDefault<EffectiveRange>((Func<EffectiveRange, bool>) (s => s.Kind == "Ep2000Pro" && s.Name == "DelayType" && s.Id == (int) Convert.ToInt16(arrRo[26], 16)))?.Value;
         index += 1
         status['DelayType'] = (data[index], data[index])
