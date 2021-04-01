@@ -148,7 +148,7 @@ class EP2000(serial.Serial):
                 last += avg
             return out
 
-        data = [int.from_bytes(chunk, byteorder='big') for chunk in chunks(in_buffer, 2)]
+        data = [int.from_bytes(chunk, byteorder='little') for chunk in chunks(in_buffer, 2)]
 
         status['data'] = data
         status['Model'] = 'ep2000'
