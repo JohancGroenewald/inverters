@@ -209,6 +209,9 @@ class EP2000(serial.Serial):
         }
         index += 1
         status['LoadState'] = (data[index], EP_LOAD_STATE.get(data[index], 'N/A'))
+
+        index += 1
+
         # ep2000Model.BatteryVoltage = ((double) Convert.ToInt16(arrRo[14], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
         status['BatteryVoltage'] = (data[index], round(data[index] * 0.1, 1))
