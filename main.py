@@ -94,7 +94,7 @@ class EP2000(serial.Serial):
         [0A  03  0E]  00  00  00  DC  00  69  00  8D  00  88  00  14  00  00 [ 30  F5]
         [10  03  14]  00  00  00 220  00 105  00 141  00 136  00  20  00  00 [ 48 245]
         """
-        device_id = '00  00  00  DC  00  69  00  8D  00  88  00  14  00  00'
+        device_id = '00 00 00 DC 00 69 00 8D 00 88 00 14 00 00'
         status['data'] = in_buffer[:]
         status['hex-string'] = ' '.join([f'{byte:02X}' for byte in in_buffer])
         status['detected'] = status['hex-string'] == device_id
@@ -164,7 +164,11 @@ class EP2000(serial.Serial):
         status['MainSw' : Enum.GetName(typeof (EPMainSW), (object) Convert.ToInt16(arrRo[25], 16));
         status['DelayType
         """
+
+        status['data'] = in_buffer[:]
+        status['hex-string'] = ' '.join([f'{byte:02X}' for byte in in_buffer])
         status['Model'] = 'ep2000'
+
         # status[''] = ''
         index = 0
         # ep2000Model.MachineType = arrRo[0];
