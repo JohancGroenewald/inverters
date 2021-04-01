@@ -139,18 +139,9 @@ class EP2000(serial.Serial):
         status['DelayType
         """
 
-        def chunks(seq, num):
-            avg = len(seq) / float(num)
-            out = []
-            last = 0.0
-            while last < len(seq):
-                out.append(seq[int(last):int(last + avg)])
-                last += avg
-            return out
-
-        print(chunks(in_buffer, 2))
-
-        data = [int.from_bytes(chunk, byteorder='little') for chunk in chunks(in_buffer, 2)]
+        data = [
+            (int.from_bytes(in_buffer[i:i+2], byteorder='little')) for i in range(0, len(in_buffer), 2)
+        ]
 
         status['data'] = data
         status['Model'] = 'ep2000'
