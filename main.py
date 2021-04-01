@@ -198,6 +198,9 @@ class EP2000(serial.Serial):
         # ep2000Model.LoadPower = Convert.ToInt16(arrRo[10], 16).ToString();
         index += 1
         status['LoadPower'] = (data[index], data[index])
+        # Undocumented 11
+        index += 1
+        status[f'Undocumented:{index}'] = (data[index], data[index])
         # ep2000Model.LoadPercent = Convert.ToInt16(arrRo[12], 16).ToString();
         index += 1
         status['LoadPercent'] = (data[index], round(data[index] * 0.1, 1))
@@ -209,15 +212,15 @@ class EP2000(serial.Serial):
         }
         index += 1
         status['LoadState'] = (data[index], EP_LOAD_STATE.get(data[index], 'N/A'))
-
-        index += 1
-
         # ep2000Model.BatteryVoltage = ((double) Convert.ToInt16(arrRo[14], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
         status['BatteryVoltage'] = (data[index], round(data[index] * 0.1, 1))
         # ep2000Model.BatteryCurrent = ((double) Convert.ToInt16(arrRo[15], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
         status['BatteryCurrent'] = (data[index], round(data[index] * 0.1, 1))
+        # Undocumented 16
+        index += 1
+        status[f'Undocumented:{index}'] = (data[index], data[index])
         # ep2000Model.BatterySoc = Convert.ToInt16(arrRo[17], 16).ToString();
         index += 1
         status['BatterySoc'] = (data[index], data[index])
