@@ -470,6 +470,9 @@ def main():
         pprint.pprint(f'sense {sense}')
         status = inverter.status()
         for key, value in status.items():
+            if key == 'meta-data':
+                pprint.pprint(f'{key:16}: {value}')
+                continue
             _index, _raw_value, _str_value = value
             pprint.pprint(f'{key:16}: {_index:2} {_raw_value:5} {_str_value}')
     pass
