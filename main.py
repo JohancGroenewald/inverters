@@ -203,7 +203,7 @@ class EP2000(serial.Serial):
         status[f'Undocumented:{index}'] = (data[index], data[index])
         # ep2000Model.LoadPercent = Convert.ToInt16(arrRo[12], 16).ToString();
         index += 1
-        status['LoadPercent'] = (data[index], round(data[index] * 0.1, 1))
+        status['LoadPercent'] = (data[index], data[index])
         # ep2000Model.LoadState = Enum.GetName(typeof (EPLoadState), (object) Convert.ToInt16(arrRo[13], 16));
         EP_LOAD_STATE = {
             0: 'LOAD_NORMAL',
@@ -228,11 +228,21 @@ class EP2000(serial.Serial):
         index += 1
         status['TransformerTemp'] = (data[index], data[index])
         # ep2000Model.AvrState = Enum.GetName(typeof (EPAVRState), (object) Convert.ToInt16(arrRo[19], 16));
+        EP_AVR_STATE = {
+            0: 'AVR_BYPASS',
+            1: 'AVR_STEPDWON',
+            2: 'AVR_BOOST'
+        }
         index += 1
-        status['AvrState'] = (data[index], data[index])
+        status['AvrState'] = (data[index], EP_AVR_STATE.get(data[index], 'N/A'))
         # ep2000Model.BuzzerState = Enum.GetName(typeof (EPBuzzerState), (object) Convert.ToInt16(arrRo[20], 16));
+        EP_BUZZER_STATE = {
+            0: 'BUZZ_OFF',
+            1: 'BUZZ_BLEW',
+            2: 'BUZZ_ALARM',
+        }
         index += 1
-        status['BuzzerState'] = (data[index], data[index])
+        status['BuzzerState'] = (data[index], EP_BUZZER_STATE.get(data[index], 'N/A'))
         # ep2000Model.Fault = Ep2000Model.FaultDic[(int) Convert.ToInt16(arrRo[21], 16)];
         index += 1
         status['Fault'] = (data[index], data[index])
@@ -251,8 +261,6 @@ class EP2000(serial.Serial):
         # ep2000Model.DelayType = Ep2000Server.Rangelist.FirstOrDefault<EffectiveRange>((Func<EffectiveRange, bool>) (s => s.Kind == "Ep2000Pro" && s.Name == "DelayType" && s.Id == (int) Convert.ToInt16(arrRo[26], 16)))?.Value;
         index += 1
         status['DelayType'] = (data[index], data[index])
-
-
         return status
 
     def _send(self, command: Tuple[str, int]):
