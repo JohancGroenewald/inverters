@@ -147,7 +147,7 @@ class EP2000(serial.Serial):
             (int.from_bytes(in_buffer[i:i+2], byteorder=BYTE_ORDER)) for i in range(0, len(in_buffer), 2)
         ]
         status['data'] = data
-        status['Model'] = 'ep2000'
+        status['Model'] = 'EP2000'
 
         # ep2000Model.MachineType = arrRo[0];
         index = 0
@@ -156,14 +156,24 @@ class EP2000(serial.Serial):
         index += 1
         status['SoftwareVersion'] = f'{data[index]}'
         # ep2000Model.WorkState = Enum.GetName(typeof (EPWokrState), (object) Convert.ToInt16(arrRo[2], 16));
+        EP_WORK_STATE = {
+            1: 'INIT',
+            2: 'SELF_CHECK',
+            3: 'BACKUP',
+            4: 'LINE',
+            5: 'STOP',
+            6: 'POWER_OFF',
+            7: 'GRID_CHG',
+            8: 'SOFT_START',
+        }
         index += 1
-        # status[''] = ''
+        status['WorkState'] = EP_WORK_STATE.get(data[index], 'N/A')
         # ep2000Model.BatClass = Convert.ToInt16(arrRo[3], 16).ToString() + "V";
         index += 1
-        # status[''] = ''
+        status['BatClass'] = f'{data[index]}V'
         # ep2000Model.RatedPower = Convert.ToInt16(arrRo[4], 16).ToString();
         index += 1
-        # status[''] = ''
+        status['RatedPower'] = data[index]
         # ep2000Model.GridVoltage = ((double) Convert.ToInt16(arrRo[5], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
         status['GridVoltage'] = data[index] * 0.1
