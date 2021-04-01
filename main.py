@@ -79,39 +79,101 @@ class EP2000(serial.Serial):
         Inverter.INDEX += 1
 
     def sense(self) -> dict:
-        """
-         0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16 [ 17  18] = 19 Bytes
-        0A  03  0E  00  00  00  DC  00  69  00  8D  00  88  00  14  00  00 [ 30  F5]
-        10  03  14  00  00  00 220  00 105  00 141  00 136  00  20  00  00 [ 48 245]
-        """
         status = {}
-
         in_buffer = self._send(EP2000.SENSE)
         if not self._valid_crc(in_buffer):
-            return 'CRC failed'
-        in_buffer = self._preprocess_status(in_buffer)
-        self._translate_status(in_buffer, status)
+            return {'error': 'CRC failed'}
+        in_buffer = self._preprocess(in_buffer)
+        self._translate_sense(in_buffer, status)
+        return status
+
+    @staticmethod
+    def _translate_sense(self, in_buffer: bytes, status: dict) -> dict:
+        """
+          0   1   2    3   4   5   6   7   8   9  10  11  12  13  14  15  16 [ 17  18] = 19 Bytes
+        [0A  03  0E]  00  00  00  DC  00  69  00  8D  00  88  00  14  00  00 [ 30  F5]
+        [10  03  14]  00  00  00 220  00 105  00 141  00 136  00  20  00  00 [ 48 245]
+        """
+        device_id = '00  00  00  DC  00  69  00  8D  00  88  00  14  00  00'
+        status['data'] = in_buffer[:]
+        status['hex-string'] = ' '.join([f'{byte:02X}' for byte in in_buffer])
+        status['detected'] = status['hex-string'] == device_id
         return status
 
     def status(self) -> dict:
-        """
-        [00A 003] 036 000 000 041 044 000 004 000 00C 002 058 008 0E8 001 0F4 008 0EB 001 0F4 000 002 000 020 000 043 000 005 000 000 000 088 000 010 000 000 000 064 000 029 000 000 000 000 000 000 000 000 000 002 000 001 000 000 000 001 0D3 0D9
-        [010 003] 054 000 000 065 068 000 004 000 012 002 088 008 232 001 244 008 235 001 244 000 002 000 032 000 067 000 005 000 000 000 136 000 016 000 000 000 100 000 041 000 000 000 000 000 000 000 000 000 002 000 001 000 000 000 001 211 217
-
-        [00A 003] 036 000 000 041 044 000 004 000 00C 002 058 008 0E8 001 0F3 008 0E1 001 0F3 000 009 000 0AB 000 0D6 000 01C 000 000 000 087 000 010 000 000 000 064 000 02B 000 000 000 000 000 000 000 000 000 002 000 001 000 000 000 001 0B6 082
-        [010 003] 054 000 000 065 068 000 004 000 012 002 088 008 232 001 243 008 225 001 243 000 009 000 171 000 214 000 028 000 000 000 135 000 016 000 000 000 100 000 043 000 000 000 000 000 000 000 000 000 002 000 001 000 000 000 001 182 130
-
-        [00A 003] 036 000 000 041 044 000 004 000 00C 002 058 008 0E8 001 0F2 008 0EB 001 0F2 000 009 000 0AA 000 0D1 000 01C 000 000 000 087 000 010 000 000 000 064 000 02B 000 000 000 000 000 000 000 000 000 002 000 001 000 000 000 001 06E 0D4
-        [010 003] 054 000 000 065 068 000 004 000 012 002 088 008 232 001 242 008 235 001 242 000 009 000 170 000 209 000 028 000 000 000 135 000 016 000 000 000 100 000 043 000 000 000 000 000 000 000 000 000 002 000 001 000 000 000 001 110 212
-
-        """
         status = {}
-
         in_buffer = self._send(EP2000.GET_STATUS)
         if not self._valid_crc(in_buffer):
-            return 'CRC failed'
-        in_buffer = self._preprocess_status(in_buffer)
+            return {'error': 'CRC failed'}
+        in_buffer = self._preprocess(in_buffer)
         self._translate_status(in_buffer, status)
+        return status
+
+    @staticmethod
+    def _translate_status(self, in_buffer: bytes, status: dict) -> dict:
+        """
+        ep2000Model.MachineType = arrRo[0];
+        ep2000Model.SoftwareVersion = Convert.ToInt16(arrRo[1], 16).ToString();
+        ep2000Model.WorkState = Enum.GetName(typeof (EPWokrState), (object) Convert.ToInt16(arrRo[2], 16));
+        ep2000Model.BatClass = Convert.ToInt16(arrRo[3], 16).ToString() + "V";
+        ep2000Model.RatedPower = Convert.ToInt16(arrRo[4], 16).ToString();
+        ep2000Model.GridVoltage = ((double) Convert.ToInt16(arrRo[5], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        ep2000Model.GridFrequency = ((double) Convert.ToInt16(arrRo[6], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        ep2000Model.OutputVoltage = ((double) Convert.ToInt16(arrRo[7], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        ep2000Model.OutputFrequency = ((double) Convert.ToInt16(arrRo[8], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        ep2000Model.LoadCurrent = ((double) Convert.ToInt16(arrRo[9], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        ep2000Model.LoadPower = Convert.ToInt16(arrRo[10], 16).ToString();
+        ep2000Model.LoadPercent = Convert.ToInt16(arrRo[12], 16).ToString();
+        ep2000Model.LoadState = Enum.GetName(typeof (EPLoadState), (object) Convert.ToInt16(arrRo[13], 16));
+        ep2000Model.BatteryVoltage = ((double) Convert.ToInt16(arrRo[14], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        ep2000Model.BatteryCurrent = ((double) Convert.ToInt16(arrRo[15], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        ep2000Model.BatterySoc = Convert.ToInt16(arrRo[17], 16).ToString();
+        ep2000Model.TransformerTemp = Convert.ToInt16(arrRo[18], 16).ToString();
+        ep2000Model.AvrState = Enum.GetName(typeof (EPAVRState), (object) Convert.ToInt16(arrRo[19], 16));
+        ep2000Model.BuzzerState = Enum.GetName(typeof (EPBuzzerState), (object) Convert.ToInt16(arrRo[20], 16));
+        ep2000Model.Fault = Ep2000Model.FaultDic[(int) Convert.ToInt16(arrRo[21], 16)];
+        ep2000Model.Alarm = Convert.ToString(Convert.ToInt16(arrRo[22], 16), 2).PadLeft(4, '0');
+        ep2000Model.ChargeState = Enum.GetName(typeof (EPChargeState), (object) Convert.ToInt16(arrRo[23], 16));
+        ep2000Model.ChargeFlag = Enum.GetName(typeof (EPChargeFlag), (object) Convert.ToInt16(arrRo[24], 16));
+        ep2000Model.MainSw = Enum.GetName(typeof (EPMainSW), (object) Convert.ToInt16(arrRo[25], 16));
+        ep2000Model.DelayType = Ep2000Server.Rangelist.FirstOrDefault<EffectiveRange>((Func<EffectiveRange, bool>) (s => s.Kind == "Ep2000Pro" && s.Name == "DelayType" && s.Id == (int) Convert.ToInt16(arrRo[26], 16)))?.Value;
+
+        status['MachineType' : arrRo[0];
+        status['SoftwareVersion' : Convert.ToInt16(arrRo[1], 16).ToString();
+        status['WorkState' : Enum.GetName(typeof (EPWokrState), (object) Convert.ToInt16(arrRo[2], 16));
+        status['BatClass' : Convert.ToInt16(arrRo[3], 16).ToString() + "V";
+        status['RatedPower' : Convert.ToInt16(arrRo[4], 16).ToString();
+        status['GridVoltage' : ((double) Convert.ToInt16(arrRo[5], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        status['GridFrequency' : ((double) Convert.ToInt16(arrRo[6], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        status['OutputVoltage' : ((double) Convert.ToInt16(arrRo[7], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        status['OutputFrequency' : ((double) Convert.ToInt16(arrRo[8], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        status['LoadCurrent' : ((double) Convert.ToInt16(arrRo[9], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        status['LoadPower' : Convert.ToInt16(arrRo[10], 16).ToString();
+        status['LoadPercent' : Convert.ToInt16(arrRo[12], 16).ToString();
+        status['LoadState' : Enum.GetName(typeof (EPLoadState), (object) Convert.ToInt16(arrRo[13], 16));
+        status['BatteryVoltage' : ((double) Convert.ToInt16(arrRo[14], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        status['BatteryCurrent' : ((double) Convert.ToInt16(arrRo[15], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        status['BatterySoc' : Convert.ToInt16(arrRo[17], 16).ToString();
+        status['TransformerTemp' : Convert.ToInt16(arrRo[18], 16).ToString();
+        status['AvrState' : Enum.GetName(typeof (EPAVRState), (object) Convert.ToInt16(arrRo[19], 16));
+        status['BuzzerState' : Enum.GetName(typeof (EPBuzzerState), (object) Convert.ToInt16(arrRo[20], 16));
+        status['Fault' : Ep2000Model.FaultDic[(int) Convert.ToInt16(arrRo[21], 16)];
+        status['Alarm' : Convert.ToString(Convert.ToInt16(arrRo[22], 16), 2).PadLeft(4, '0');
+        status['ChargeState' : Enum.GetName(typeof (EPChargeState), (object) Convert.ToInt16(arrRo[23], 16));
+        status['ChargeFlag' : Enum.GetName(typeof (EPChargeFlag), (object) Convert.ToInt16(arrRo[24], 16));
+        status['MainSw' : Enum.GetName(typeof (EPMainSW), (object) Convert.ToInt16(arrRo[25], 16));
+        status['DelayType
+        """
+        status['Model'] = 'ep2000'
+        # status[''] = ''
+        index = 0
+        # ep2000Model.MachineType = arrRo[0];
+        status['MachineType'] = f'{in_buffer[index]:02X}'
+        index += 1
+        # ep2000Model.SoftwareVersion = Convert.ToInt16(arrRo[1], 16).ToString();
+        status['SoftwareVersion'] = f'{in_buffer[index]}'
+
+
         return status
 
     def _send(self, command: Tuple[str, int]):
@@ -136,6 +198,7 @@ class EP2000(serial.Serial):
                 f'Bytes read ({len(in_buffer)}) and result_length ({result_length}) mismatch')
         return in_buffer
 
+    @staticmethod
     def _valid_crc(self, in_buffer: bytes):
         """
         public bool CRCCheck(byte[] readedBytes)
@@ -207,92 +270,15 @@ class EP2000(serial.Serial):
 
         return crc
 
-    def _preprocess_status(self, in_buffer: bytes):
+    @staticmethod
+    def _preprocess(self, in_buffer: bytes):
         """
-            public string[] HandleComReturned(/*Parameter with token 0800003F*/string hexstrg)
-            {
-              StringBuilder stringBuilder = new StringBuilder(hexstrg);
-              stringBuilder.Remove(0, 8);
-              string str = stringBuilder.Remove(stringBuilder.Length - 6, 5).ToString().Trim();
-              for (int startIndex = str.Length - 1; startIndex >= 0; --startIndex)
-              {
-                if (startIndex % 6 == 2)
-                  str = str.Remove(startIndex, 1);
-              }
-              return str.Split(new char[1]{ ' ' });
-            }
-
+        Remove header: first 3 bytes [handshake + data bytes returned]
+        Remove CRC   : last 2 bytes
         """
-        # stringBuilder.Remove(0, 8);
-        # start_index, length = 0, 8
-        # in_buffer = in_buffer[start_index: start_index + length]
-
-        # string str = stringBuilder.Remove(stringBuilder.Length - 6, 5).ToString().Trim();
-
-        print(' '.join([f'{byte:02X}' for byte in in_buffer]))
-        print(' '.join([f'{byte:03X}' for byte in in_buffer]))
-        print(' '.join([f'{byte:03}' for byte in in_buffer]))
-
-        return in_buffer
-
-    def _translate_status(self, in_buffer: bytes, status: dict):
-        """
-        ep2000Model.MachineType = arrRo[0];
-        ep2000Model.SoftwareVersion = Convert.ToInt16(arrRo[1], 16).ToString();
-        ep2000Model.WorkState = Enum.GetName(typeof (EPWokrState), (object) Convert.ToInt16(arrRo[2], 16));
-        ep2000Model.BatClass = Convert.ToInt16(arrRo[3], 16).ToString() + "V";
-        ep2000Model.RatedPower = Convert.ToInt16(arrRo[4], 16).ToString();
-        ep2000Model.GridVoltage = ((double) Convert.ToInt16(arrRo[5], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        ep2000Model.GridFrequency = ((double) Convert.ToInt16(arrRo[6], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        ep2000Model.OutputVoltage = ((double) Convert.ToInt16(arrRo[7], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        ep2000Model.OutputFrequency = ((double) Convert.ToInt16(arrRo[8], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        ep2000Model.LoadCurrent = ((double) Convert.ToInt16(arrRo[9], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        ep2000Model.LoadPower = Convert.ToInt16(arrRo[10], 16).ToString();
-        ep2000Model.LoadPercent = Convert.ToInt16(arrRo[12], 16).ToString();
-        ep2000Model.LoadState = Enum.GetName(typeof (EPLoadState), (object) Convert.ToInt16(arrRo[13], 16));
-        ep2000Model.BatteryVoltage = ((double) Convert.ToInt16(arrRo[14], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        ep2000Model.BatteryCurrent = ((double) Convert.ToInt16(arrRo[15], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        ep2000Model.BatterySoc = Convert.ToInt16(arrRo[17], 16).ToString();
-        ep2000Model.TransformerTemp = Convert.ToInt16(arrRo[18], 16).ToString();
-        ep2000Model.AvrState = Enum.GetName(typeof (EPAVRState), (object) Convert.ToInt16(arrRo[19], 16));
-        ep2000Model.BuzzerState = Enum.GetName(typeof (EPBuzzerState), (object) Convert.ToInt16(arrRo[20], 16));
-        ep2000Model.Fault = Ep2000Model.FaultDic[(int) Convert.ToInt16(arrRo[21], 16)];
-        ep2000Model.Alarm = Convert.ToString(Convert.ToInt16(arrRo[22], 16), 2).PadLeft(4, '0');
-        ep2000Model.ChargeState = Enum.GetName(typeof (EPChargeState), (object) Convert.ToInt16(arrRo[23], 16));
-        ep2000Model.ChargeFlag = Enum.GetName(typeof (EPChargeFlag), (object) Convert.ToInt16(arrRo[24], 16));
-        ep2000Model.MainSw = Enum.GetName(typeof (EPMainSW), (object) Convert.ToInt16(arrRo[25], 16));
-        ep2000Model.DelayType = Ep2000Server.Rangelist.FirstOrDefault<EffectiveRange>((Func<EffectiveRange, bool>) (s => s.Kind == "Ep2000Pro" && s.Name == "DelayType" && s.Id == (int) Convert.ToInt16(arrRo[26], 16)))?.Value;
-
-        status['MachineType' : arrRo[0];
-        status['SoftwareVersion' : Convert.ToInt16(arrRo[1], 16).ToString();
-        status['WorkState' : Enum.GetName(typeof (EPWokrState), (object) Convert.ToInt16(arrRo[2], 16));
-        status['BatClass' : Convert.ToInt16(arrRo[3], 16).ToString() + "V";
-        status['RatedPower' : Convert.ToInt16(arrRo[4], 16).ToString();
-        status['GridVoltage' : ((double) Convert.ToInt16(arrRo[5], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        status['GridFrequency' : ((double) Convert.ToInt16(arrRo[6], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        status['OutputVoltage' : ((double) Convert.ToInt16(arrRo[7], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        status['OutputFrequency' : ((double) Convert.ToInt16(arrRo[8], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        status['LoadCurrent' : ((double) Convert.ToInt16(arrRo[9], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        status['LoadPower' : Convert.ToInt16(arrRo[10], 16).ToString();
-        status['LoadPercent' : Convert.ToInt16(arrRo[12], 16).ToString();
-        status['LoadState' : Enum.GetName(typeof (EPLoadState), (object) Convert.ToInt16(arrRo[13], 16));
-        status['BatteryVoltage' : ((double) Convert.ToInt16(arrRo[14], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        status['BatteryCurrent' : ((double) Convert.ToInt16(arrRo[15], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        status['BatterySoc' : Convert.ToInt16(arrRo[17], 16).ToString();
-        status['TransformerTemp' : Convert.ToInt16(arrRo[18], 16).ToString();
-        status['AvrState' : Enum.GetName(typeof (EPAVRState), (object) Convert.ToInt16(arrRo[19], 16));
-        status['BuzzerState' : Enum.GetName(typeof (EPBuzzerState), (object) Convert.ToInt16(arrRo[20], 16));
-        status['Fault' : Ep2000Model.FaultDic[(int) Convert.ToInt16(arrRo[21], 16)];
-        status['Alarm' : Convert.ToString(Convert.ToInt16(arrRo[22], 16), 2).PadLeft(4, '0');
-        status['ChargeState' : Enum.GetName(typeof (EPChargeState), (object) Convert.ToInt16(arrRo[23], 16));
-        status['ChargeFlag' : Enum.GetName(typeof (EPChargeFlag), (object) Convert.ToInt16(arrRo[24], 16));
-        status['MainSw' : Enum.GetName(typeof (EPMainSW), (object) Convert.ToInt16(arrRo[25], 16));
-        status['DelayType
-
-        """
-
-
-        pass
+        open = 3
+        close = -2
+        return in_buffer[open:close]
 
 
 class Inverter(serial.Serial):
@@ -350,10 +336,13 @@ def main():
     inverters = [
         EP2000(port=port, baudrate=9600, timeout=3.0, write_timeout=1.0) for port in Inverters.port_list()
     ]
-    for inverter in inverters:
+    for i in range(len(inverters)):
+        inverter = inverters[i]
         print(inverter)
-        report = inverter.status()
-        print(f'report {report}')
+        sense = inverter.sense()
+        print(f'sense {sense}')
+        status = inverter.status()
+        print(f'status {status}')
     pass
 
 
