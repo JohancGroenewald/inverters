@@ -95,7 +95,7 @@ class EP2000(serial.Serial):
         [10  03  14]  00  00  00 220  00 105  00 141  00 136  00  20  00  00 [ 48 245]
         """
         device_id = '00 00 00 DC 00 69 00 8D 00 88 00 14 00 00'
-        status['data'] = in_buffer[:]
+        # status['data'] = in_buffer[:]
         status['hex-string'] = ' '.join([f'{byte:02X}' for byte in in_buffer])
         status['detected'] = status['hex-string'] == device_id
         return status
@@ -139,12 +139,13 @@ class EP2000(serial.Serial):
         status['DelayType
         """
 
+        status['hex-string'] = ' '.join([f'{byte:02X}' for byte in in_buffer])
         data = [
             (int.from_bytes(in_buffer[i:i+2], byteorder='little')) for i in range(0, len(in_buffer), 2)
         ]
-
         status['data'] = data
         status['Model'] = 'ep2000'
+
         # '00 00 41 44 00 04 00 0C 02 58 09 2E 01 F4 09 30 01 F4 00 0A 00 D5 00 FD 00 23 00 00 00 87 00 10 00 00 00 64 00 2B 00 00 00 00 00 00 00 00 00 02 00 01 00 00 00 01'
         # '0000 4144 0004 000C 0258 092E 01F4 0930 01F4 000A 00D5 00FD 0023 0000 0087 0010 0000 0064 002B 0000 0000 0000 0000 0002 0001 0000 0001'
         # '00 0041 4400 0400 0C02 5809 2E01 F409 3001 F400 0A00 D500 FD00 2300 0000 8700 1000 0000 6400 2B00 0000 0000 0000 0000 0200 0100 0000 01'
