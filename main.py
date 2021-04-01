@@ -79,6 +79,11 @@ class EP2000(serial.Serial):
         Inverter.INDEX += 1
 
     def sense(self) -> dict:
+        """
+        10 03 14 00 00 00 220 00 105 00 141 00 136 00 20 00 00 48 245
+        10 03 14 00 00 00 220 00 105 00 141 00 136 00 20 00 00 48 245
+        10 03 14 00 00 00 220 00 105 00 141 00 136 00 20 00 00 48 245
+        """
         status = {}
 
         in_buffer = self._send(EP2000.SENSE)
@@ -213,9 +218,8 @@ class EP2000(serial.Serial):
 
         # string str = stringBuilder.Remove(stringBuilder.Length - 6, 5).ToString().Trim();
 
-        print(in_buffer)
-        data = ' '.join([f'{byte:02}' for byte in in_buffer])
-        print(data)
+        print(' '.join([f'{byte:02X}' for byte in in_buffer]))
+        print(' '.join([f'{byte:02}' for byte in in_buffer]))
 
         return in_buffer
 
