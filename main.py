@@ -61,12 +61,6 @@ class Inverters:
 
 
 class EP2000(serial.Serial):
-    """
-    string textSend1 = "0A 03 75 30 00 1B 1E B9";
-    string textSend2 = "0A 03 79 18 00 0A 5D ED";
-    reset         :    "0A 10 7D 00 00 01 02 00 01 B9 A7"
-    SaveReadinData:    "0A 10 79 18 00 0A 14"
-    """
     INDEX = 0
 
     SENSE = ("0A 03 79 18 00 07 9C 28", -1)
@@ -83,6 +77,16 @@ class EP2000(serial.Serial):
         super().__init__(**kwargs)
         self.index = Inverter.INDEX
         Inverter.INDEX += 1
+
+    def sense(self) -> dict:
+        status = {}
+
+        in_buffer = self._send(EP2000.SENSE)
+        if not self._valid_crc(in_buffer):
+            return 'CRC failed'
+        in_buffer = self._preprocess_status(in_buffer)
+        self._translate_status(in_buffer, status)
+        return status
 
     def get_status(self) -> dict:
         status = {}
@@ -144,17 +148,18 @@ class EP2000(serial.Serial):
           return (int) maxValue2 + (int) maxValue1 == num1;
         }
         """
-        crc = False
-        array1 = in_buffer[:]
-        array2 = bytes(len(in_buffer) - 2)
-        check: int = int(in_buffer[-2]) + int(in_buffer[-1])
-        print(int(in_buffer[-2]), int(in_buffer[-1]), check)
-        maxValue1 = int(255).to_bytes(1, byteorder='big')
-        maxValue2 = int(255).to_bytes(1, byteorder='big')
-        num2 = int(1).to_bytes(1, byteorder='big')
-        num3 = int(160).to_bytes(1, byteorder='big')
-
-        print(type(num2))
+        crc = True
+        # array1 = in_buffer[:]
+        # array2 = bytes(len(in_buffer) - 2)
+        # check: int = int(in_buffer[-2]) + int(in_buffer[-1])
+        # print(int(in_buffer[-2]), int(in_buffer[-1]), check)
+        # maxValue1 = int(255).to_bytes(1, byteorder='big')
+        # maxValue2 = int(255).to_bytes(1, byteorder='big')
+        # num2 = int(1).to_bytes(1, byteorder='big')
+        # num3 = int(160).to_bytes(1, byteorder='big')
+        #
+        # for byte in array2:
+        #     maxValue1[0]
 
         """
         foreach (byte num4 in numArray2)
@@ -202,7 +207,7 @@ class EP2000(serial.Serial):
         # string str = stringBuilder.Remove(stringBuilder.Length - 6, 5).ToString().Trim();
 
         print(in_buffer)
-        data = ' '.join([f'{byte:02X}' for byte in in_buffer])
+        data = ' '.join([f'{byte:02}' for byte in in_buffer])
         print(data)
 
         return in_buffer
@@ -315,6 +320,7 @@ def main():
     # DONE: list available serial ports
     # DONE: connect to inverters
     # DONE: query inverters
+    # TODO: calculate CRC (skip for now)
     # TODO: translate incoming data
     # write status to database
     # exit
@@ -323,7 +329,7 @@ def main():
     ]
     for inverter in inverters:
         print(inverter)
-        report = inverter.get_status()
+        report = inverter.sense()
         print(f'report {report}')
     pass
 
