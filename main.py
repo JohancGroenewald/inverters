@@ -88,7 +88,7 @@ class EP2000(serial.Serial):
         return status
 
     @staticmethod
-    def _translate_sense(self, in_buffer: bytes, status: dict) -> dict:
+    def _translate_sense(in_buffer: bytes, status: dict) -> dict:
         """
           0   1   2    3   4   5   6   7   8   9  10  11  12  13  14  15  16 [ 17  18] = 19 Bytes
         [0A  03  0E]  00  00  00  DC  00  69  00  8D  00  88  00  14  00  00 [ 30  F5]
@@ -110,7 +110,7 @@ class EP2000(serial.Serial):
         return status
 
     @staticmethod
-    def _translate_status(self, in_buffer: bytes, status: dict) -> dict:
+    def _translate_status(in_buffer: bytes, status: dict) -> dict:
         """
         ep2000Model.MachineType = arrRo[0];
         ep2000Model.SoftwareVersion = Convert.ToInt16(arrRo[1], 16).ToString();
@@ -199,7 +199,7 @@ class EP2000(serial.Serial):
         return in_buffer
 
     @staticmethod
-    def _valid_crc(self, in_buffer: bytes):
+    def _valid_crc(in_buffer: bytes):
         """
         public bool CRCCheck(byte[] readedBytes)
         {
@@ -271,7 +271,7 @@ class EP2000(serial.Serial):
         return crc
 
     @staticmethod
-    def _preprocess(self, in_buffer: bytes):
+    def _preprocess(in_buffer: bytes):
         """
         Remove header: first 3 bytes [handshake + data bytes returned]
         Remove CRC   : last 2 bytes
