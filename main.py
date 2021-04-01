@@ -112,31 +112,7 @@ class EP2000(serial.Serial):
     @staticmethod
     def _translate_status(in_buffer: bytes, status: dict) -> dict:
         """
-        ep2000Model.MachineType = arrRo[0];
-        ep2000Model.SoftwareVersion = Convert.ToInt16(arrRo[1], 16).ToString();
-        ep2000Model.WorkState = Enum.GetName(typeof (EPWokrState), (object) Convert.ToInt16(arrRo[2], 16));
-        ep2000Model.BatClass = Convert.ToInt16(arrRo[3], 16).ToString() + "V";
-        ep2000Model.RatedPower = Convert.ToInt16(arrRo[4], 16).ToString();
-        ep2000Model.GridVoltage = ((double) Convert.ToInt16(arrRo[5], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        ep2000Model.GridFrequency = ((double) Convert.ToInt16(arrRo[6], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        ep2000Model.OutputVoltage = ((double) Convert.ToInt16(arrRo[7], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        ep2000Model.OutputFrequency = ((double) Convert.ToInt16(arrRo[8], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        ep2000Model.LoadCurrent = ((double) Convert.ToInt16(arrRo[9], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        ep2000Model.LoadPower = Convert.ToInt16(arrRo[10], 16).ToString();
-        ep2000Model.LoadPercent = Convert.ToInt16(arrRo[12], 16).ToString();
-        ep2000Model.LoadState = Enum.GetName(typeof (EPLoadState), (object) Convert.ToInt16(arrRo[13], 16));
-        ep2000Model.BatteryVoltage = ((double) Convert.ToInt16(arrRo[14], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        ep2000Model.BatteryCurrent = ((double) Convert.ToInt16(arrRo[15], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        ep2000Model.BatterySoc = Convert.ToInt16(arrRo[17], 16).ToString();
-        ep2000Model.TransformerTemp = Convert.ToInt16(arrRo[18], 16).ToString();
-        ep2000Model.AvrState = Enum.GetName(typeof (EPAVRState), (object) Convert.ToInt16(arrRo[19], 16));
-        ep2000Model.BuzzerState = Enum.GetName(typeof (EPBuzzerState), (object) Convert.ToInt16(arrRo[20], 16));
-        ep2000Model.Fault = Ep2000Model.FaultDic[(int) Convert.ToInt16(arrRo[21], 16)];
-        ep2000Model.Alarm = Convert.ToString(Convert.ToInt16(arrRo[22], 16), 2).PadLeft(4, '0');
-        ep2000Model.ChargeState = Enum.GetName(typeof (EPChargeState), (object) Convert.ToInt16(arrRo[23], 16));
-        ep2000Model.ChargeFlag = Enum.GetName(typeof (EPChargeFlag), (object) Convert.ToInt16(arrRo[24], 16));
-        ep2000Model.MainSw = Enum.GetName(typeof (EPMainSW), (object) Convert.ToInt16(arrRo[25], 16));
-        ep2000Model.DelayType = Ep2000Server.Rangelist.FirstOrDefault<EffectiveRange>((Func<EffectiveRange, bool>) (s => s.Kind == "Ep2000Pro" && s.Name == "DelayType" && s.Id == (int) Convert.ToInt16(arrRo[26], 16)))?.Value;
+
 
         status['MachineType' : arrRo[0];
         status['SoftwareVersion' : Convert.ToInt16(arrRo[1], 16).ToString();
@@ -165,18 +141,48 @@ class EP2000(serial.Serial):
         status['DelayType
         """
 
-        status['data'] = in_buffer[:]
-        status['hex-string'] = ' '.join([f'{byte:02X}' for byte in in_buffer])
-        status['Model'] = 'ep2000'
+        data = []
+        for i in range(start=0, stop=len(in_buffer), step=2):
+            data.append(int.from_bytes(in_buffer[i-1:1], byteorder='little'))
 
+        status['data'] = data
+        status['Model'] = 'ep2000'
+        # '00 00 41 44 00 04 00 0C 02 58 09 2E 01 F4 09 30 01 F4 00 0A 00 D5 00 FD 00 23 00 00 00 87 00 10 00 00 00 64 00 2B 00 00 00 00 00 00 00 00 00 02 00 01 00 00 00 01'
+        # '0000 4144 0004 000C 0258 092E 01F4 0930 01F4 000A 00D5 00FD 0023 0000 0087 0010 0000 0064 002B 0000 0000 0000 0000 0002 0001 0000 0001'
+        # '00 0041 4400 0400 0C02 5809 2E01 F409 3001 F400 0A00 D500 FD00 2300 0000 8700 1000 0000 6400 2B00 0000 0000 0000 0000 0200 0100 0000 01'
         # status[''] = ''
         index = 0
         # ep2000Model.MachineType = arrRo[0];
-        status['MachineType'] = f'{in_buffer[index]:02X}'
+        status['MachineType'] = f'{data[index]}'
         index += 1
         # ep2000Model.SoftwareVersion = Convert.ToInt16(arrRo[1], 16).ToString();
-        status['SoftwareVersion'] = f'{in_buffer[index]}'
+        status['SoftwareVersion'] = f'{data[index]}'
 
+        '''
+        ep2000Model.WorkState = Enum.GetName(typeof (EPWokrState), (object) Convert.ToInt16(arrRo[2], 16));
+        ep2000Model.BatClass = Convert.ToInt16(arrRo[3], 16).ToString() + "V";
+        ep2000Model.RatedPower = Convert.ToInt16(arrRo[4], 16).ToString();
+        ep2000Model.GridVoltage = ((double) Convert.ToInt16(arrRo[5], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        ep2000Model.GridFrequency = ((double) Convert.ToInt16(arrRo[6], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        ep2000Model.OutputVoltage = ((double) Convert.ToInt16(arrRo[7], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        ep2000Model.OutputFrequency = ((double) Convert.ToInt16(arrRo[8], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        ep2000Model.LoadCurrent = ((double) Convert.ToInt16(arrRo[9], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        ep2000Model.LoadPower = Convert.ToInt16(arrRo[10], 16).ToString();
+        ep2000Model.LoadPercent = Convert.ToInt16(arrRo[12], 16).ToString();
+        ep2000Model.LoadState = Enum.GetName(typeof (EPLoadState), (object) Convert.ToInt16(arrRo[13], 16));
+        ep2000Model.BatteryVoltage = ((double) Convert.ToInt16(arrRo[14], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        ep2000Model.BatteryCurrent = ((double) Convert.ToInt16(arrRo[15], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
+        ep2000Model.BatterySoc = Convert.ToInt16(arrRo[17], 16).ToString();
+        ep2000Model.TransformerTemp = Convert.ToInt16(arrRo[18], 16).ToString();
+        ep2000Model.AvrState = Enum.GetName(typeof (EPAVRState), (object) Convert.ToInt16(arrRo[19], 16));
+        ep2000Model.BuzzerState = Enum.GetName(typeof (EPBuzzerState), (object) Convert.ToInt16(arrRo[20], 16));
+        ep2000Model.Fault = Ep2000Model.FaultDic[(int) Convert.ToInt16(arrRo[21], 16)];
+        ep2000Model.Alarm = Convert.ToString(Convert.ToInt16(arrRo[22], 16), 2).PadLeft(4, '0');
+        ep2000Model.ChargeState = Enum.GetName(typeof (EPChargeState), (object) Convert.ToInt16(arrRo[23], 16));
+        ep2000Model.ChargeFlag = Enum.GetName(typeof (EPChargeFlag), (object) Convert.ToInt16(arrRo[24], 16));
+        ep2000Model.MainSw = Enum.GetName(typeof (EPMainSW), (object) Convert.ToInt16(arrRo[25], 16));
+        ep2000Model.DelayType = Ep2000Server.Rangelist.FirstOrDefault<EffectiveRange>((Func<EffectiveRange, bool>) (s => s.Kind == "Ep2000Pro" && s.Name == "DelayType" && s.Id == (int) Convert.ToInt16(arrRo[26], 16)))?.Value;
+        '''
 
         return status
 
