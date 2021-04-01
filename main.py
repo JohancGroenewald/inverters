@@ -94,6 +94,11 @@ class EP2000(serial.Serial):
         return status
 
     def status(self) -> dict:
+        """
+        0A  03  36  00  00  41  44  00  04  00 0C 02 58 08 F2 01 F4 08 F5 01 F4 00 02 00 1F 00 3D 00 05 00 00 00 88 00 10 00 00 00 64 00 29 00 00 00 00 00 00 00 00 00 02 00 01 00 00 00 01 4B 31
+        10  03  54  00  00  65  68  00  04  00 12 02 88 08 242 01 244 08 245 01 244 00 02 00 31 00 61 00 05 00 00 00 136 00 16 00 00 00 100 00 41 00 00 00 00 00 00 00 00 00 02 00 01 00 00 00 01 75 49
+
+        """
         status = {}
 
         in_buffer = self._send(EP2000.GET_STATUS)
@@ -218,8 +223,8 @@ class EP2000(serial.Serial):
 
         # string str = stringBuilder.Remove(stringBuilder.Length - 6, 5).ToString().Trim();
 
-        print(' '.join([f'{byte:02X}' for byte in in_buffer]))
-        print(' '.join([f'{byte:02}' for byte in in_buffer]))
+        print(' '.join([f'{byte:03X}' for byte in in_buffer]))
+        print(' '.join([f'{byte:03}' for byte in in_buffer]))
 
         return in_buffer
 
