@@ -112,8 +112,6 @@ class EP2000(serial.Serial):
     @staticmethod
     def _translate_status(in_buffer: bytes, status: dict) -> dict:
         """
-
-
         status['MachineType' : arrRo[0];
         status['SoftwareVersion' : Convert.ToInt16(arrRo[1], 16).ToString();
         status['WorkState' : Enum.GetName(typeof (EPWokrState), (object) Convert.ToInt16(arrRo[2], 16));
@@ -141,9 +139,16 @@ class EP2000(serial.Serial):
         status['DelayType
         """
 
-        data = []
-        for i in range(0, len(in_buffer), 2):
-            data.append(int.from_bytes(in_buffer[i-1:1], byteorder='big'))
+        def chunks(seq, num):
+            avg = len(seq) / float(num)
+            out = []
+            last = 0.0
+            while last < len(seq):
+                out.append(seq[int(last):int(last + avg)])
+                last += avg
+            return out
+
+        data = [int.from_bytes(chunk, byteorder='big') for chunk in chunks(in_buffer, 2)]
 
         status['data'] = data
         status['Model'] = 'ep2000'
