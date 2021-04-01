@@ -1,6 +1,7 @@
 import time
 from argparse import ArgumentParser
 from typing import Tuple
+import pprint
 
 import serial
 from serial.tools.list_ports import comports
@@ -385,15 +386,15 @@ def main():
     # write status to database
     # exit
     inverters = [
-        EP2000(port=port, baudrate=9600, timeout=3.0, write_timeout=1.0) for port in Inverters.port_list()
+        EP2000(port=port, baudrate=9600, timeout=3.0, write_timeout=1.0) for port in Inverters.port_list()[:1]
     ]
     for i in range(len(inverters)):
         inverter = inverters[i]
         print(inverter)
         sense = inverter.sense()
-        print(f'sense {sense}')
+        pprint.pprint(f'sense {sense}')
         status = inverter.status()
-        print(f'status {status}')
+        pprint.pprint(f'status {status}')
     pass
 
 
