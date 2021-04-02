@@ -6,6 +6,8 @@ from tabulate import tabulate
 import serial
 from serial.tools.list_ports import comports
 
+BYTE_ORDER = 'big'
+
 ap = ArgumentParser(description='Query connected inverters',)
 ap.add_argument('--list', action="store_true")
 ap.add_argument('--print', action="store_true")
@@ -21,8 +23,12 @@ if args.basic:
     args.status = True
     args.setup = False
 
-BYTE_ORDER = 'big'
-BASIC_STATUS = ['LoadPercent', 'TransformerTemp', 'MainSwitch']
+BASIC_STATUS = [
+    'LoadPower',
+    'LoadPercent',
+    'TransformerTemp',
+    'MainSwitch'
+]
 
 
 class Inverters:
