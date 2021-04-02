@@ -29,7 +29,7 @@ BASIC_STATUS = [
     'LoadPercent',
     'BatteryVoltage',
     'BatteryCurrent',
-    'BatterySoc',
+    'BatteryCapacity',
     'TransformerTemp',
     'ChargeFlag',
     'MainSwitch',
@@ -307,7 +307,7 @@ class EP2000(serial.Serial):
         report[f'Undocumented:{index}'] = (index, data[index], data[index], '')
         # ep2000Model.BatterySoc = Convert.ToInt16(arrRo[17], 16).ToString();
         index += 1
-        report['BatterySoc'] = (index, data[index], data[index], '')
+        report['BatteryCapacity'] = (index, data[index], data[index], '%')
         # ep2000Model.TransformerTemp = Convert.ToInt16(arrRo[18], 16).ToString();
         index += 1
         report['TransformerTemp'] = (index, data[index], data[index], 'C')
