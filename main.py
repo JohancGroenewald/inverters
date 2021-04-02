@@ -522,7 +522,7 @@ def main():
         report = inverter.sense()
         print(tabulate(
             [[key, value] for key, value in report.items()],
-            headers=['Name', 'Value']
+            headers=['Name', 'Value'], tablefmt='orgtbl'
         ))
         report = inverter.status()
         # for key, value in report.items():
@@ -532,8 +532,9 @@ def main():
         #     _index, _raw_value, _str_value = value
         #     pprint.pprint(f'{key:16}: {_index:2} {_raw_value:5} {_str_value}')
         print(tabulate(
-            [[key, list(value)] for key, value in report.items() if key != 'meta-data'],
-            headers=['Key', 'Index', 'Raw', 'Value']
+            [([key] + list(value)) for key, value in report.items() if key != 'meta-data'],
+            headers=['Key', 'Index', 'Raw', 'Value'],
+            tablefmt='orgtbl'
         ))
     pass
 
