@@ -14,14 +14,17 @@ class PathDoesNotExistError(Exception):
     pass
 
 
+timestamp = datetime.datetime.now()
+timestamp_string = timestamp.strftime("%Y%m%d")
+
 BYTE_ORDER = 'big'
 NEWLINE = '\n'
 COLUMN_SEPARATOR = '|'
 LIST_SEPARATOR = ','
 DEFAULT_LOG_PATH = 'log'
-SENSE_LOG_FILE_MASK = 'log-sense-date.log'
-STATUS_LOG_FILE_MASK = 'log-status-date.log'
-SETUP_LOG_FILE_MASK = 'log-setup-date.log'
+SENSE_LOG_FILE_MASK = f'log-sense-{timestamp_string}.log'
+STATUS_LOG_FILE_MASK = f'log-status-{timestamp_string}.log'
+SETUP_LOG_FILE_MASK = f'log-setup-{timestamp_string}.log'
 
 ap = ArgumentParser(description='Query connected inverters',)
 ap.add_argument('--list', action="store_true")
@@ -546,7 +549,6 @@ def main():
     ]
     # -----------------------------------------------------------------------------------------------------------------
     for i in range(len(inverters)):
-        timestamp = datetime.datetime.now().timestamp()
         inverter = inverters[i]
         if args.print:
             print(inverter)
@@ -559,7 +561,7 @@ def main():
                     headers=['Name', 'Value'], tablefmt='psql'
                 ))
             if args.log:
-                buffer = [f'{timestamp}', f'{inverter.port}']
+                buffer = [f'{timestamp.timestamp()}', f'{inverter.port}']
                 buffer.extend([
                     f'{key}:{value}'
                     for key, value in report.items()
@@ -592,7 +594,7 @@ def main():
                     tablefmt='psql'
                 ))
             if args.log:
-                buffer = [f'{timestamp}', f'{inverter.port}']
+                buffer = [f'{timestamp.timestamp()}', f'{inverter.port}']
                 buffer.extend([
                     f'{key}:{LIST_SEPARATOR.join([f"{_item}" for _item in value])}'
                     for key, value in report.items()
@@ -612,7 +614,7 @@ def main():
                     tablefmt='psql'
                 ))
             if args.log:
-                buffer = [f'{timestamp}', f'{inverter.port}']
+                buffer = [f'{timestamp.timestamp()}', f'{inverter.port}']
                 buffer.extend([
                     f'{key}:{LIST_SEPARATOR.join([f"{_item}" for _item in value])}'
                     for key, value in report.items()
