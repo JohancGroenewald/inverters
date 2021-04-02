@@ -7,8 +7,11 @@ import serial
 from serial.tools.list_ports import comports
 
 ap = ArgumentParser(description='Query connected inverters',)
-ap.add_argument('-l', '--list', action="store_true")
-ap.add_argument('-p', '--print', action="store_true")
+ap.add_argument('--list', action="store_true")
+ap.add_argument('--print', action="store_true")
+ap.add_argument('--sense', action="store_true")
+ap.add_argument('--status', action="store_true")
+ap.add_argument('--setup', action="store_true")
 args = ap.parse_args()
 
 BYTE_ORDER = 'big'
@@ -488,26 +491,29 @@ def main():
         inverter = inverters[i]
         if args.print:
             print(inverter)
-        report = inverter.sense()
-        if args.print:
-            print(tabulate(
-                [[key, value] for key, value in report.items()],
-                headers=['Name', 'Value'], tablefmt='psql'
-            ))
-        report = inverter.status()
-        if args.print:
-            print(tabulate(
-                [([key] + list(value)) for key, value in report.items() if key != 'meta-data'],
-                headers=['Key', 'Index', 'Raw', 'Value', 'Unit'],
-                tablefmt='psql'
-            ))
-        report = inverter.read_setup()
-        if args.print:
-            print(tabulate(
-                [([key] + list(value)) for key, value in report.items() if key != 'meta-data'],
-                headers=['Key', 'Index', 'Raw', 'Value', 'Unit'],
-                tablefmt='psql'
-            ))
+        if args.sense:
+            report = inverter.sense()
+            if args.print:
+                print(tabulate(
+                    [[key, value] for key, value in report.items()],
+                    headers=['Name', 'Value'], tablefmt='psql'
+                ))
+        if args.status:
+            report = inverter.status()
+            if args.print:
+                print(tabulate(
+                    [([key] + list(value)) for key, value in report.items() if key != 'meta-data'],
+                    headers=['Key', 'Index', 'Raw', 'Value', 'Unit'],
+                    tablefmt='psql'
+                ))
+        if args.setup:
+            report = inverter.read_setup()
+            if args.print:
+                print(tabulate(
+                    [([key] + list(value)) for key, value in report.items() if key != 'meta-data'],
+                    headers=['Key', 'Index', 'Raw', 'Value', 'Unit'],
+                    tablefmt='psql'
+                ))
     pass
 
 
