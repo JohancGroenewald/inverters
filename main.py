@@ -592,7 +592,8 @@ def main():
             if args.log:
                 buffer = [f'{timestamp}', f'{inverter.port}']
                 buffer.extend([
-                    f'{key}:{",".join(list(value))}'
+                    # f'{key}:{",".join(list(value))}'
+                    f'{key}:{list(value)}'
                     for key, value in report.items()
                     # if key != 'meta-data'
                 ])
@@ -612,7 +613,8 @@ def main():
             if args.log:
                 buffer = [f'{timestamp}', f'{inverter.port}']
                 buffer.extend([
-                    f'{key}:{",".join(list(value))}'
+                    # f'{key}:{",".join(list(value))}'
+                    f'{key}:{list(value)}'
                     for key, value in report.items()
                     # if key != 'meta-data'
                 ])
