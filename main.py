@@ -1,12 +1,20 @@
 import time
 from argparse import ArgumentParser
 from typing import Tuple
+import os
 
 from tabulate import tabulate
 import serial
 from serial.tools.list_ports import comports
 
+
+class PathDoesNotExistError(Exception):
+    """Raised if the log path does not exist"""
+    pass
+
+
 BYTE_ORDER = 'big'
+DEFAULT_LOG_PATH = 'log'
 
 ap = ArgumentParser(description='Query connected inverters',)
 ap.add_argument('--list', action="store_true")
@@ -15,7 +23,13 @@ ap.add_argument('--sense', action="store_true")
 ap.add_argument('--status', action="store_true")
 ap.add_argument('--setup', action="store_true")
 ap.add_argument('--basic', action="store_true")
+ap.add_argument('--log', action="store_true")
+ap.add_argument('--log-path', default=DEFAULT_LOG_PATH)
 args = ap.parse_args()
+
+if args.log:
+    if not os.path.exists(args.log_path):
+        raise PathDoesNotExistError('args.log_path')
 
 if args.basic:
     args.print = True
