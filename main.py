@@ -22,9 +22,9 @@ NEWLINE = '\n'
 COLUMN_SEPARATOR = '|'
 LIST_SEPARATOR = ','
 DEFAULT_LOG_PATH = 'log'
-SENSE_LOG_FILE_MASK = f'log-sense-{timestamp_string}.log'
-STATUS_LOG_FILE_MASK = f'log-status-{timestamp_string}.log'
-SETUP_LOG_FILE_MASK = f'log-setup-{timestamp_string}.log'
+SENSE_LOG_FILE_MASK = f'sense-{timestamp_string}.log'
+STATUS_LOG_FILE_MASK = f'status-{timestamp_string}.log'
+SETUP_LOG_FILE_MASK = f'setup-{timestamp_string}.log'
 
 ap = ArgumentParser(description='Query connected inverters',)
 ap.add_argument('--list', action="store_true")
