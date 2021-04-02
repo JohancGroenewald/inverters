@@ -282,9 +282,9 @@ class EP2000(serial.Serial):
         # ep2000Model.LoadPower = Convert.ToInt16(arrRo[10], 16).ToString();
         index += 1
         report['LoadPower'] = (index, data[index], data[index], 'W')
-        # Undocumented 11
+        # Apparent Power
         index += 1
-        report[f'Undocumented:{index}'] = (index, data[index], data[index], '')
+        report[f'ApparentPower'] = (index, data[index], data[index], 'VA')
         # ep2000Model.LoadPercent = Convert.ToInt16(arrRo[12], 16).ToString();
         index += 1
         report['LoadPercent'] = (index, data[index], data[index], '%')
