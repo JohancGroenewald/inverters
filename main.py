@@ -579,9 +579,9 @@ def main():
                     for key, value in report.items()
                     if key != 'meta-data'
                 ])
-                buffer.append('\n')
-                with open(STATUS_LOG_FILE_MASK, 'a') as f:
+                with open(STATUS_LOG_FILE_MASK, 'a', newline='\n') as f:
                     f.write(','.join(buffer))
+                    f.write('\n')
         if args.setup:
             report = inverter.read_setup()
             if args.print:
