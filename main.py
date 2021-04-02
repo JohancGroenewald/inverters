@@ -16,6 +16,8 @@ class PathDoesNotExistError(Exception):
 
 BYTE_ORDER = 'big'
 NEWLINE = '\n'
+COLUMN_SEPARATOR = '|'
+LIST_SEPARATOR = ','
 DEFAULT_LOG_PATH = 'log'
 SENSE_LOG_FILE_MASK = 'log-sense-date.log'
 STATUS_LOG_FILE_MASK = 'log-status-date.log'
@@ -564,7 +566,7 @@ def main():
                 ])
                 unc = os.path.join(args.log_path, SENSE_LOG_FILE_MASK)
                 with open(unc, 'a') as f:
-                    f.write(','.join(buffer))
+                    f.write(COLUMN_SEPARATOR.join(buffer))
                     f.write(NEWLINE)
         # -------------------------------------------------------------------------------------------------------------
         if args.status:
@@ -592,13 +594,13 @@ def main():
             if args.log:
                 buffer = [f'{timestamp}', f'{inverter.port}']
                 buffer.extend([
-                    f'{key}:{",".join([f"{_item}" for _item in value])}'
+                    f'{key}:{LIST_SEPARATOR.join([f"{_item}" for _item in value])}'
                     for key, value in report.items()
                     if key != 'meta-data'
                 ])
                 unc = os.path.join(args.log_path, STATUS_LOG_FILE_MASK)
                 with open(unc, 'a') as f:
-                    f.write(','.join(buffer))
+                    f.write(COLUMN_SEPARATOR.join(buffer))
                     f.write(NEWLINE)
         # -------------------------------------------------------------------------------------------------------------
         if args.setup:
@@ -612,13 +614,13 @@ def main():
             if args.log:
                 buffer = [f'{timestamp}', f'{inverter.port}']
                 buffer.extend([
-                    f'{key}:{",".join([f"{_item}" for _item in value])}'
+                    f'{key}:{LIST_SEPARATOR.join([f"{_item}" for _item in value])}'
                     for key, value in report.items()
                     if key != 'meta-data'
                 ])
                 unc = os.path.join(args.log_path, SETUP_LOG_FILE_MASK)
                 with open(unc, 'a') as f:
-                    f.write(','.join(buffer))
+                    f.write(COLUMN_SEPARATOR.join(buffer))
                     f.write(NEWLINE)
     # -----------------------------------------------------------------------------------------------------------------
 
