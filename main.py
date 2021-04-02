@@ -15,30 +15,43 @@ class PathDoesNotExistError(Exception):
 
 BYTE_ORDER = 'big'
 DEFAULT_LOG_PATH = 'log'
+SENSE_LOG_FILE_MASK = 'log-sense-date.log'
+STATUS_LOG_FILE_MASK = 'log-status-date.log'
+SETUP_LOG_FILE_MASK = 'log-setup-date.log'
 
 ap = ArgumentParser(description='Query connected inverters',)
 ap.add_argument('--list', action="store_true")
-ap.add_argument('--print', action="store_true")
+ap.add_argument('--basic', action="store_true")
 ap.add_argument('--sense', action="store_true")
 ap.add_argument('--status', action="store_true")
 ap.add_argument('--setup', action="store_true")
-ap.add_argument('--basic', action="store_true")
+ap.add_argument('--print', action="store_true")
 ap.add_argument('--log', action="store_true")
 ap.add_argument('--log-path', default=DEFAULT_LOG_PATH)
 args = ap.parse_args()
 
+if args.list:
+    # args.list
+    args.basic = False
+    args.sense = False
+    args.status = False
+    args.setup = False
+    args.print = False
+    args.log = False
 if args.log:
     args.log_path = os.path.abspath(args.log_path)
     if os.path.isfile(args.log_path):
         raise NotADirectoryError(f'{args.log_path}')
     if not os.path.isdir(args.log_path):
         raise PathDoesNotExistError(f'{args.log_path}')
-
 if args.basic:
-    args.print = True
+    # args.list
+    # args.basic
     args.sense = False
     args.status = True
     args.setup = False
+    args.print = True
+    # args.log
 
 BASIC_STATUS = [
     'WorkState',
@@ -518,6 +531,7 @@ def main():
     # DONE: query inverters
     # TODO: calculate CRC (skip for now)
     # DONE: translate incoming data
+    # TODO: write status to log
     # TODO: write status to database
     # exit
     inverters = [
@@ -556,6 +570,14 @@ def main():
                     headers=['Key', 'Index', 'Raw', 'Value', 'Unit'],
                     tablefmt='psql'
                 ))
+            if args.log:
+                buffer = [
+                    f'{key}: {list(value)}'
+                    for key, value in report.items()
+                    if key != 'meta-data'
+                ]
+                with open(STATUS_LOG_FILE_MASK, 'a') as f:
+                    f.write(','.join(buffer))
         if args.setup:
             report = inverter.read_setup()
             if args.print:
