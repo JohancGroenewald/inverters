@@ -12,9 +12,17 @@ ap.add_argument('--print', action="store_true")
 ap.add_argument('--sense', action="store_true")
 ap.add_argument('--status', action="store_true")
 ap.add_argument('--setup', action="store_true")
+ap.add_argument('--basic', action="store_true")
 args = ap.parse_args()
 
+if args.basic:
+    args.print = True
+    args.sense = False
+    args.status = True
+    args.setup = False
+
 BYTE_ORDER = 'big'
+BASIC_STATUS = ['LoadPercent', 'TransformerTemp', 'MainSwitch']
 
 
 class Inverters:
@@ -500,9 +508,23 @@ def main():
                 ))
         if args.status:
             report = inverter.status()
-            if args.print:
+            if args.print and not args.basic:
                 print(tabulate(
-                    [([key] + list(value)) for key, value in report.items() if key != 'meta-data'],
+                    [
+                        ([key] + list(value))
+                        for key, value in report.items()
+                        if key != 'meta-data'
+                    ],
+                    headers=['Key', 'Index', 'Raw', 'Value', 'Unit'],
+                    tablefmt='psql'
+                ))
+            elif args.print and args.basic:
+                print(tabulate(
+                    [
+                        ([key] + list(value))
+                        for key, value in report.items()
+                        if key in BASIC_STATUS
+                    ],
                     headers=['Key', 'Index', 'Raw', 'Value', 'Unit'],
                     tablefmt='psql'
                 ))
