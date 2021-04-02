@@ -262,7 +262,6 @@ class EP2000(serial.Serial):
         [10  03  14]  00  00  00 220  00 105  00 141  00 136  00  20  00  00 [ 48 245]
         """
         device_id = '00 00 00 DC 00 69 00 8D 00 88 00 14 00 00'
-        # report['data'] = in_buffer[:]
         report['hex-string'] = ' '.join([f'{byte:02X}' for byte in in_buffer])
         report['detected'] = report['hex-string'] == device_id
         return report
