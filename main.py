@@ -28,11 +28,7 @@ ap.add_argument('--log-path', default=DEFAULT_LOG_PATH)
 args = ap.parse_args()
 
 if args.log:
-    print(
-        os.path.abspath(args.log_path),
-        os.path.isabs(args.log_path),
-        os.path.relpath(args.log_path),
-    )
+    args.log_path = os.path.abspath(args.log_path)
     if os.path.isfile(args.log_path):
         raise NotADirectoryError(f'{args.log_path}')
     if not os.path.isdir(args.log_path):
