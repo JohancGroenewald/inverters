@@ -8,6 +8,7 @@ from serial.tools.list_ports import comports
 
 ap = ArgumentParser(description='Query connected inverters',)
 ap.add_argument('-l', '--list', action="store_true")
+ap.add_argument('-p', '--print', action="store_true")
 args = ap.parse_args()
 
 BYTE_ORDER = 'big'
@@ -485,24 +486,28 @@ def main():
     ]
     for i in range(len(inverters)):
         inverter = inverters[i]
-        print(inverter)
+        if args.print:
+            print(inverter)
         report = inverter.sense()
-        print(tabulate(
-            [[key, value] for key, value in report.items()],
-            headers=['Name', 'Value'], tablefmt='psql'
-        ))
+        if args.print:
+            print(tabulate(
+                [[key, value] for key, value in report.items()],
+                headers=['Name', 'Value'], tablefmt='psql'
+            ))
         report = inverter.status()
-        print(tabulate(
-            [([key] + list(value)) for key, value in report.items() if key != 'meta-data'],
-            headers=['Key', 'Index', 'Raw', 'Value', 'Unit'],
-            tablefmt='psql'
-        ))
+        if args.print:
+            print(tabulate(
+                [([key] + list(value)) for key, value in report.items() if key != 'meta-data'],
+                headers=['Key', 'Index', 'Raw', 'Value', 'Unit'],
+                tablefmt='psql'
+            ))
         report = inverter.read_setup()
-        print(tabulate(
-            [([key] + list(value)) for key, value in report.items() if key != 'meta-data'],
-            headers=['Key', 'Index', 'Raw', 'Value', 'Unit'],
-            tablefmt='psql'
-        ))
+        if args.print:
+            print(tabulate(
+                [([key] + list(value)) for key, value in report.items() if key != 'meta-data'],
+                headers=['Key', 'Index', 'Raw', 'Value', 'Unit'],
+                tablefmt='psql'
+            ))
     pass
 
 
