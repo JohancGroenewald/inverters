@@ -277,15 +277,16 @@ class EP2000(serial.Serial):
         return report
 
     @staticmethod
-    def _translate_status(in_buffer: bytes, report: dict) -> dict:
+    def _translate_status(in_buffer: bytes, report: dict, meta_data=False) -> dict:
         data = [
             (int.from_bytes(in_buffer[i:i + 2], byteorder=BYTE_ORDER)) for i in range(0, len(in_buffer), 2)
         ]
-        report['meta-data'] = {
-            'hex-string': ' '.join([f'{byte:02X}' for byte in in_buffer]),
-            'data': data,
-            'Model': EP2000.MODEL,
-        }
+        if meta_data:
+            report['meta-data'] = {
+                'hex-string': ' '.join([f'{byte:02X}' for byte in in_buffer]),
+                'data': data,
+                'Model': EP2000.MODEL,
+            }
         # ep2000Model.MachineType = arrRo[0];
         index = 0
         report['MachineType'] = (index, data[index], data[index], '')
@@ -381,15 +382,16 @@ class EP2000(serial.Serial):
         return report
 
     @staticmethod
-    def _translate_setup(in_buffer: bytes, report: dict) -> dict:
+    def _translate_setup(in_buffer: bytes, report: dict, meta_data=False) -> dict:
         data = [
             (int.from_bytes(in_buffer[i:i + 2], byteorder=BYTE_ORDER)) for i in range(0, len(in_buffer), 2)
         ]
-        report['meta-data'] = {
-            'hex-string': ' '.join([f'{byte:02X}' for byte in in_buffer]),
-            'data': data,
-            'Model': EP2000.MODEL,
-        }
+        if meta_data:
+            report['meta-data'] = {
+                'hex-string': ' '.join([f'{byte:02X}' for byte in in_buffer]),
+                'data': data,
+                'Model': EP2000.MODEL,
+            }
         # ep2000Model.GridFrequencyType = Ep2000Server.Rangelist.FirstOrDefault<EffectiveRange>(new Func<EffectiveRange, bool>((object) cDisplayClass40, __methodptr(\u003CGetDataFromProt\u003Eb__1)))?.Value;
         index = 0
         report['GridFrequencyType'] = (index, data[index], EP2000Enums.GRID_FREQUENCY_TYPE.get(data[index], 'N/A'), 'Hz')
