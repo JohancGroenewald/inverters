@@ -15,6 +15,7 @@ class PathDoesNotExistError(Exception):
 
 
 BYTE_ORDER = 'big'
+NEWLINE = '\n'
 DEFAULT_LOG_PATH = 'log'
 SENSE_LOG_FILE_MASK = 'log-sense-date.log'
 STATUS_LOG_FILE_MASK = 'log-status-date.log'
@@ -527,6 +528,7 @@ class EP2000(serial.Serial):
 
 
 def main():
+    # -----------------------------------------------------------------------------------------------------------------
     # DONE: list available serial ports
     # DONE: connect to inverters
     # DONE: query inverters
@@ -535,14 +537,17 @@ def main():
     # TODO: write status to log
     # TODO: write status to database
     # exit
+    # -----------------------------------------------------------------------------------------------------------------
     inverters = [
         EP2000(port=port, baudrate=9600, timeout=3.0, write_timeout=1.0) for port in Inverters.port_list()
     ]
+    # -----------------------------------------------------------------------------------------------------------------
     for i in range(len(inverters)):
         timestamp = datetime.datetime.now().timestamp()
         inverter = inverters[i]
         if args.print:
             print(inverter)
+        # -------------------------------------------------------------------------------------------------------------
         if args.sense:
             report = inverter.sense()
             if args.print:
@@ -550,6 +555,17 @@ def main():
                     [[key, value] for key, value in report.items()],
                     headers=['Name', 'Value'], tablefmt='psql'
                 ))
+            if args.log:
+                buffer = [f'{timestamp}', f'{inverter.port}']
+                buffer.extend([
+                    f'{key}: {value}'
+                    for key, value in report.items()
+                ])
+                unc = os.path.join(args.log_path, SENSE_LOG_FILE_MASK)
+                with open(unc, 'a') as f:
+                    f.write(','.join(buffer))
+                    f.write(NEWLINE)
+        # -------------------------------------------------------------------------------------------------------------
         if args.status:
             report = inverter.status()
             if args.print and not args.basic:
@@ -579,9 +595,11 @@ def main():
                     for key, value in report.items()
                     if key != 'meta-data'
                 ])
-                with open(STATUS_LOG_FILE_MASK, 'a', newline='\n') as f:
+                unc = os.path.join(args.log_path, STATUS_LOG_FILE_MASK)
+                with open(unc, 'a') as f:
                     f.write(','.join(buffer))
-                    f.write('\n')
+                    f.write(NEWLINE)
+        # -------------------------------------------------------------------------------------------------------------
         if args.setup:
             report = inverter.read_setup()
             if args.print:
@@ -590,7 +608,18 @@ def main():
                     headers=['Key', 'Index', 'Raw', 'Value', 'Unit'],
                     tablefmt='psql'
                 ))
-    pass
+            if args.log:
+                buffer = [f'{timestamp}', f'{inverter.port}']
+                buffer.extend([
+                    f'{key}: {list(value)}'
+                    for key, value in report.items()
+                    if key != 'meta-data'
+                ])
+                unc = os.path.join(args.log_path, SETUP_LOG_FILE_MASK)
+                with open(unc, 'a') as f:
+                    f.write(','.join(buffer))
+                    f.write(NEWLINE)
+    # -----------------------------------------------------------------------------------------------------------------
 
 
 if __name__ == '__main__':
