@@ -558,7 +558,7 @@ def main():
             if args.log:
                 buffer = [f'{timestamp}', f'{inverter.port}']
                 buffer.extend([
-                    f'{key}: {value}'
+                    f'{key}:{value}'
                     for key, value in report.items()
                 ])
                 unc = os.path.join(args.log_path, SENSE_LOG_FILE_MASK)
@@ -591,7 +591,7 @@ def main():
             if args.log:
                 buffer = [f'{timestamp}', f'{inverter.port}']
                 buffer.extend([
-                    f'{key}: {list(value)}'
+                    f'{key}:{",".join(list(value))}'
                     for key, value in report.items()
                     if key != 'meta-data'
                 ])
@@ -611,7 +611,7 @@ def main():
             if args.log:
                 buffer = [f'{timestamp}', f'{inverter.port}']
                 buffer.extend([
-                    f'{key}: {list(value)}'
+                    f'{key}:{",".join(list(value))}'
                     for key, value in report.items()
                     if key != 'meta-data'
                 ])
