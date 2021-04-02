@@ -522,7 +522,7 @@ def main():
         report = inverter.sense()
         print(tabulate(
             [[key, value] for key, value in report.items()],
-            headers=['Name', 'Value'], tablefmt='orgtbl'
+            headers=['Name', 'Value'], tablefmt='psql'
         ))
         report = inverter.status()
         # for key, value in report.items():
@@ -534,7 +534,7 @@ def main():
         print(tabulate(
             [([key] + list(value)) for key, value in report.items() if key != 'meta-data'],
             headers=['Key', 'Index', 'Raw', 'Value'],
-            tablefmt='orgtbl'
+            tablefmt='psql'
         ))
     pass
 
