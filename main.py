@@ -573,7 +573,7 @@ def main():
                     tablefmt='psql'
                 ))
             if args.log:
-                buffer = [timestamp]
+                buffer = [f'{timestamp}']
                 buffer.extend([
                     f'{key}: {list(value)}'
                     for key, value in report.items()
