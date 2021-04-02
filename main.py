@@ -174,7 +174,7 @@ class EP2000(serial.Serial):
     SENSE = ("0A 03 79 18 00 07 9C 28", 19)
     STATUS = ("0A 03 75 30 00 1B 1E B9", 59)
 
-    READ_SETUP = ("0A 03 79 18 00 0A 5D ED", -1)
+    READ_SETUP = ("0A 03 79 18 00 0A 5D ED", 25)
     WRITE_SETUP = ("0A 10 79 18 00 0A 14", -1)
 
     RESTORE_FACTORY_SETTINGS = ("0A 10 7D 00 00 01 02 00 01 B9 A7", -1)
@@ -379,7 +379,7 @@ class EP2000(serial.Serial):
         in_buffer: bytes = super().read(bytes_to_read)
         if result_length == -1:
             result_length = len(in_buffer)
-            print(f'PEEK LENGTH: {result_length}')
+            print(f'SERIAL RECEIVE PEEK LENGTH: {result_length}')
         if result_length != len(in_buffer):
             raise Inverters.SerialReadException(
                 f'Bytes read ({len(in_buffer)}) and result_length ({result_length}) mismatch')
