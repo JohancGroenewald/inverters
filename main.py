@@ -157,6 +157,14 @@ class EP2000Enums:
         0: '50',
         1: '60',
     }
+    STATE = {
+        0: 'DISABLE',
+        1: 'ENABLE',
+    }
+    STATE_INVERTED = {
+        0: 'ENABLE',
+        1: 'DISABLE',
+    }
 
 
 class EP2000(serial.Serial):
@@ -222,10 +230,10 @@ class EP2000(serial.Serial):
         }
         # ep2000Model.MachineType = arrRo[0];
         index = 0
-        report['MachineType'] = (index, data[index], f'{data[index]}')
+        report['MachineType'] = (index, data[index], data[index])
         # ep2000Model.SoftwareVersion = Convert.ToInt16(arrRo[1], 16).ToString();
         index += 1
-        report['SoftwareVersion'] = (index, data[index], f'{data[index]}')
+        report['SoftwareVersion'] = (index, data[index], data[index])
         # ep2000Model.WorkState = Enum.GetName(typeof (EPWokrState), (object) Convert.ToInt16(arrRo[2], 16));
         index += 1
         report['WorkState'] = (index, data[index], EP2000Enums.EP_WORK_STATE.get(data[index], 'N/A'))
@@ -329,31 +337,31 @@ class EP2000(serial.Serial):
         report['GridFrequencyType'] = (index, data[index], EP2000Enums.GRID_FREQUENCY_TYPE.get(data[index], 'N/A'), 'Hz')
         # ep2000Model.GridVoltageType = Convert.ToInt16(cDisplayClass40.arrRw[1], 16).ToString() + " V";
         index += 1
-        report['GridVoltageType'] = (index, data[index], f'{data[index]}')
+        report['GridVoltageType'] = (index, data[index], data[index], 'V')
         # ep2000Model.BatteryLowVoltage = ((double) Convert.ToInt16(cDisplayClass40.arrRw[2], 16) * 0.1).ToString("F1") + "V";
         index += 1
-        report['BatteryLowVoltage'] = (index, data[index], f'{data[index]}')
+        report['BatteryLowVoltage'] = (index, data[index], round(data[index] * 0.1, 1), 'V')
         # ep2000Model.ConstantChargeVoltage = ((double) Convert.ToInt16(cDisplayClass40.arrRw[3], 16) * 0.1).ToString("F1") + "V";
         index += 1
-        report['ConstantChargeVoltage'] = (index, data[index], f'{data[index]}')
+        report['ConstantChargeVoltage'] = (index, data[index], round(data[index] * 0.1, 1), 'V')
         # ep2000Model.FloatChargeVoltage = ((double) Convert.ToInt16(cDisplayClass40.arrRw[4], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture) + "V";
         index += 1
-        report['FloatChargeVoltage'] = (index, data[index], f'{data[index]}')
+        report['FloatChargeVoltage'] = (index, data[index], round(data[index] * 0.1, 1), 'V')
         # ep2000Model.BulkChargeCurrent = Convert.ToInt16(cDisplayClass40.arrRw[5], 16).ToString((IFormatProvider) CultureInfo.InvariantCulture) + "A";
         index += 1
-        report['BulkChargeCurrent'] = (index, data[index], f'{data[index]}')
+        report['BulkChargeCurrent'] = (index, data[index], data[index], 'A')
         # ep2000Model.BuzzerSilence = Enum.GetName(typeof (EPBuzzerSilence), (object) Convert.ToInt16(cDisplayClass40.arrRw[6], 16));
         index += 1
-        report['BuzzerSilence'] = (index, data[index], f'{data[index]}')
+        report['BuzzerSilence'] = (index, data[index], data[index], '')
         # ep2000Model.EnableGridCharge = Convert.ToInt16(cDisplayClass40.arrRw[7], 16) == (short) 0 ? "Enable" : "Disable";
         index += 1
-        report['EnableGridCharge'] = (index, data[index], f'{data[index]}')
+        report['EnableGridCharge'] = (index, data[index], EP2000Enums.STATE_INVERTED.get(data[index], 'N/A'), '')
         # ep2000Model.EnableKeySound = Convert.ToInt16(cDisplayClass40.arrRw[8], 16) == (short) 0 ? "Enable" : "Disable";
         index += 1
-        report['EnableKeySound'] = (index, data[index], f'{data[index]}')
+        report['EnableKeySound'] = (index, data[index], EP2000Enums.STATE_INVERTED.get(data[index], 'N/A'), '')
         # ep2000Model.EnableBacklight = Convert.ToInt16(cDisplayClass40.arrRw[9], 16) == (short) 0 ? "Disable" : "Enable";
         index += 1
-        report['EnableBacklight'] = (index, data[index], f'{data[index]}')
+        report['EnableBacklight'] = (index, data[index], EP2000Enums.STATE.get(data[index], 'N/A'), '')
         return report
 
     def _send(self, command: Tuple[str, int]):
@@ -461,50 +469,6 @@ class EP2000(serial.Serial):
         return in_buffer[open:close]
 
 
-class Inverter(serial.Serial):
-    INDEX = 0
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.index = Inverter.INDEX
-        Inverter.INDEX += 1
-
-    def command(self, out_buffer: bytes, result_length: int) -> list:
-        count = super().write(out_buffer)
-        in_buffer: bytes = super().read(result_length)
-        return self.handle_com_returned(in_buffer)
-
-    @staticmethod
-    def handle_com_returned(in_buffer: bytes) -> list:
-        """
-            public string[] HandleComReturned(/*Parameter with token 0800003F*/string hexstrg)
-            {
-              StringBuilder stringBuilder = new StringBuilder(hexstrg);
-              stringBuilder.Remove(0, 8);
-              string str = stringBuilder.Remove(stringBuilder.Length - 6, 5).ToString().Trim();
-              for (int startIndex = str.Length - 1; startIndex >= 0; --startIndex)
-              {
-                if (startIndex % 6 == 2)
-                  str = str.Remove(startIndex, 1);
-              }
-              return str.Split(new char[1]{ ' ' });
-            }
-        """
-        data = ' '.join([f'{byte:02X}' for byte in in_buffer])
-        header = ' '.join([f'{byte:02X}' for byte in in_buffer[:8]])
-        in_buffer = in_buffer[8:]
-        start, stop = len(in_buffer) - 6, len(in_buffer) - 6 + 5
-        discard = ' '.join([f'{byte:02X}' for byte in in_buffer[start: stop]])
-        in_buffer = in_buffer[:start] + in_buffer[stop:]
-        buffer = [
-            data, header, discard, ' '.join([f'{byte:02X}' for byte in in_buffer])
-        ]
-        return buffer
-
-    def __str__(self):
-        return f'Inverter(index={self.index}, port={super().port})'
-
-
 def main():
     # DONE: list available serial ports
     # DONE: connect to inverters
@@ -525,15 +489,15 @@ def main():
             headers=['Name', 'Value'], tablefmt='psql'
         ))
         report = inverter.status()
-        # for key, value in report.items():
-        #     if key == 'meta-data':
-        #         pprint.pprint(f'{key:16}: {value}')
-        #         continue
-        #     _index, _raw_value, _str_value = value
-        #     pprint.pprint(f'{key:16}: {_index:2} {_raw_value:5} {_str_value}')
         print(tabulate(
             [([key] + list(value)) for key, value in report.items() if key != 'meta-data'],
-            headers=['Key', 'Index', 'Raw', 'Value'],
+            headers=['Key', 'Index', 'Raw', 'Value', 'Unit'],
+            tablefmt='psql'
+        ))
+        report = inverter.read_setup()
+        print(tabulate(
+            [([key] + list(value)) for key, value in report.items() if key != 'meta-data'],
+            headers=['Key', 'Index', 'Raw', 'Value', 'Unit'],
             tablefmt='psql'
         ))
     pass
