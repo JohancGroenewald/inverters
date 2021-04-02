@@ -1,7 +1,8 @@
-import time
+import datetime
 from argparse import ArgumentParser
 from typing import Tuple
 import os
+import json
 
 from tabulate import tabulate
 import serial
@@ -538,6 +539,7 @@ def main():
         EP2000(port=port, baudrate=9600, timeout=3.0, write_timeout=1.0) for port in Inverters.port_list()
     ]
     for i in range(len(inverters)):
+        timestamp = datetime.datetime.now().timestamp()
         inverter = inverters[i]
         if args.print:
             print(inverter)
@@ -571,11 +573,12 @@ def main():
                     tablefmt='psql'
                 ))
             if args.log:
-                buffer = [
+                buffer = [timestamp]
+                buffer.extend([
                     f'{key}: {list(value)}'
                     for key, value in report.items()
                     if key != 'meta-data'
-                ]
+                ])
                 with open(STATUS_LOG_FILE_MASK, 'a') as f:
                     f.write(','.join(buffer))
         if args.setup:
