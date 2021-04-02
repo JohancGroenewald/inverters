@@ -594,7 +594,7 @@ def main():
                 buffer.extend([
                     f'{key}:{",".join(list(value))}'
                     for key, value in report.items()
-                    if key != 'meta-data'
+                    # if key != 'meta-data'
                 ])
                 unc = os.path.join(args.log_path, STATUS_LOG_FILE_MASK)
                 with open(unc, 'a') as f:
@@ -614,7 +614,7 @@ def main():
                 buffer.extend([
                     f'{key}:{",".join(list(value))}'
                     for key, value in report.items()
-                    if key != 'meta-data'
+                    # if key != 'meta-data'
                 ])
                 unc = os.path.join(args.log_path, SETUP_LOG_FILE_MASK)
                 with open(unc, 'a') as f:
