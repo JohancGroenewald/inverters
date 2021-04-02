@@ -24,10 +24,12 @@ if args.basic:
     args.setup = False
 
 BASIC_STATUS = [
+    'WorkState',
     'LoadPower',
     'LoadPercent',
     'TransformerTemp',
-    'MainSwitch'
+    'ChargeFlag',
+    'MainSwitch',
 ]
 
 
