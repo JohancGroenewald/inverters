@@ -2,8 +2,8 @@ import time
 from argparse import ArgumentParser
 from typing import Tuple
 from decimal import Decimal
-import pprint
 
+from tabulate import tabulate
 import serial
 from serial.tools.list_ports import comports
 
@@ -64,16 +64,111 @@ class Inverters:
         return ports
 
 
+class EP2000Enums:
+    EP_WORK_STATE = {
+        1: 'INIT',
+        2: 'SELF_CHECK',
+        3: 'BACKUP',
+        4: 'LINE',
+        5: 'STOP',
+        6: 'POWER_OFF',
+        7: 'GRID_CHG',
+        8: 'SOFT_START',
+    }
+    EP_LOAD_STATE = {
+        0: 'LOAD_NORMAL',
+        1: 'LOAD_ALARM',
+        2: 'OVER_LOAD',
+    }
+    EP_AVR_STATE = {
+        0: 'AVR_BYPASS',
+        1: 'AVR_STEPDWON',
+        2: 'AVR_BOOST'
+    }
+    EP_BUZZER_STATE = {
+        0: 'BUZZ_OFF',
+        1: 'BUZZ_BLEW',
+        2: 'BUZZ_ALARM',
+    }
+    FAULT_DICTIONARY = {
+        0: "",
+        1: "Fan is locked when inverter is off",
+        2: "Inverter transformer over temperature",
+        3: "battery voltage is too high",
+        4: "battery voltage is too low",
+        5: "Output short circuited",
+        6: "Inverter output voltage is high",
+        7: "Overload time out",
+        8: "Inverter bus voltage is too high",
+        9: "Bus soft start failed",
+        11: "Main relay failed",
+        21: "Inverter output voltage sensor error",
+        22: "Inverter grid voltage sensor error",
+        23: "Inverter output current sensor error",
+        24: "Inverter grid current sensor error",
+        25: "Inverter load current sensor error",
+        26: "Inverter grid over current error",
+        27: "Inverter radiator over temperature",
+        31: "Solar charger battery voltage class error",
+        32: "Solar charger current sensor error",
+        33: "Solar charger current is uncontrollable",
+        41: "Inverter grid voltage is low",
+        42: "Inverter grid voltage is high",
+        43: "Inverter grid under frequency",
+        44: "Inverter grid over frequency",
+        51: "Inverter over current protection error",
+        52: "Inverter bus voltage is too low",
+        53: "Inverter soft start failed",
+        54: "Over DC voltage in AC output",
+        56: "Battery connection is open",
+        57: "Inverter control current sensor error",
+        58: "Inverter output voltage is too low",
+        61: "Fan is locked when inverter is on.",
+        62: "Fan2 is locked when inverter is on.",
+        63: "Battery is over-charged.",
+        64: "Low battery",
+        67: "Overload",
+        70: "Output power Derating",
+        72: "Solar charger stops due to low battery",
+        73: "Solar charger stops due to high PV voltage",
+        74: "Solar charger stops due to over load",
+        75: "Solar charger over temperature",
+        76: "PV charger communication error",
+        77: "Parameter error"
+    }
+    EP_CHARGE_STATE = {
+        0: 'CC',
+        1: 'CV',
+        2: 'FV',
+    }
+    EP_CHARGE_FLAG = {
+        0: 'UN_CHARGE',
+        1: 'CHARGED',
+    }
+    EP_MAIN_SWITCH = {
+        0: 'OFF',
+        1: 'ON',
+    }
+    DELAY_TYPE = {
+        0: 'STANDARD',
+        1: 'LONG_DELAY',
+    }
+    GRID_FREQUENCY_TYPE = {
+        0: '50',
+        1: '60',
+    }
+
+
 class EP2000(serial.Serial):
     MODEL = 'EP2000'
 
     INDEX = 0
 
     SENSE = ("0A 03 79 18 00 07 9C 28", 19)
-    GET_STATUS = ("0A 03 75 30 00 1B 1E B9", 59)
+    STATUS = ("0A 03 75 30 00 1B 1E B9", 59)
 
-    GET_SETTINGS = ("0A 03 79 18 00 0A 5D ED", -1)
-    SAVE_SETTINGS = ("0A 10 79 18 00 0A 14", -1)
+    READ_SETUP = ("0A 03 79 18 00 0A 5D ED", -1)
+    WRITE_SETUP = ("0A 10 79 18 00 0A 14", -1)
 
     RESTORE_FACTORY_SETTINGS = ("0A 10 7D 00 00 01 02 00 01 B9 A7", -1)
     REMOTE_RESET = ("0A 10 7D 01 00 01 02 00 01 B8 76", -1)
@@ -85,223 +180,181 @@ class EP2000(serial.Serial):
         Inverter.INDEX += 1
 
     def sense(self) -> dict:
-        status = {}
+        report = {}
         in_buffer = self._send(EP2000.SENSE)
         if not self._valid_crc(in_buffer):
             return {'error': 'CRC failed'}
         in_buffer = self._preprocess(in_buffer)
-        self._translate_sense(in_buffer, status)
-        return status
+        self._translate_sense(in_buffer, report)
+        return report
 
     @staticmethod
-    def _translate_sense(in_buffer: bytes, status: dict) -> dict:
+    def _translate_sense(in_buffer: bytes, report: dict) -> dict:
         """
           0   1   2    3   4   5   6   7   8   9  10  11  12  13  14  15  16 [ 17  18] = 19 Bytes
         [0A  03  0E]  00  00  00  DC  00  69  00  8D  00  88  00  14  00  00 [ 30  F5]
         [10  03  14]  00  00  00 220  00 105  00 141  00 136  00  20  00  00 [ 48 245]
         """
         device_id = '00 00 00 DC 00 69 00 8D 00 88 00 14 00 00'
-        # status['data'] = in_buffer[:]
-        status['hex-string'] = ' '.join([f'{byte:02X}' for byte in in_buffer])
-        status['detected'] = status['hex-string'] == device_id
-        return status
+        # report['data'] = in_buffer[:]
+        report['hex-string'] = ' '.join([f'{byte:02X}' for byte in in_buffer])
+        report['detected'] = report['hex-string'] == device_id
+        return report
 
     def status(self) -> dict:
-        status = {}
-        in_buffer = self._send(EP2000.GET_STATUS)
+        report = {}
+        in_buffer = self._send(EP2000.STATUS)
         if not self._valid_crc(in_buffer):
             return {'error': 'CRC failed'}
         in_buffer = self._preprocess(in_buffer)
-        self._translate_status(in_buffer, status)
-        return status
+        self._translate_status(in_buffer, report)
+        return report
 
     @staticmethod
-    def _translate_status(in_buffer: bytes, status: dict) -> dict:
-        """
-        status['MachineType' : arrRo[0];
-        status['SoftwareVersion' : Convert.ToInt16(arrRo[1], 16).ToString();
-        status['WorkState' : Enum.GetName(typeof (EPWokrState), (object) Convert.ToInt16(arrRo[2], 16));
-        status['BatClass' : Convert.ToInt16(arrRo[3], 16).ToString() + "V";
-        status['RatedPower' : Convert.ToInt16(arrRo[4], 16).ToString();
-        status['GridVoltage' : ((double) Convert.ToInt16(arrRo[5], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        status['GridFrequency' : ((double) Convert.ToInt16(arrRo[6], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        status['OutputVoltage' : ((double) Convert.ToInt16(arrRo[7], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        status['OutputFrequency' : ((double) Convert.ToInt16(arrRo[8], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        status['LoadCurrent' : ((double) Convert.ToInt16(arrRo[9], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        status['LoadPower' : Convert.ToInt16(arrRo[10], 16).ToString();
-        status['LoadPercent' : Convert.ToInt16(arrRo[12], 16).ToString();
-        status['LoadState' : Enum.GetName(typeof (EPLoadState), (object) Convert.ToInt16(arrRo[13], 16));
-        status['BatteryVoltage' : ((double) Convert.ToInt16(arrRo[14], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        status['BatteryCurrent' : ((double) Convert.ToInt16(arrRo[15], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
-        status['BatterySoc' : Convert.ToInt16(arrRo[17], 16).ToString();
-        status['TransformerTemp' : Convert.ToInt16(arrRo[18], 16).ToString();
-        status['AvrState' : Enum.GetName(typeof (EPAVRState), (object) Convert.ToInt16(arrRo[19], 16));
-        status['BuzzerState' : Enum.GetName(typeof (EPBuzzerState), (object) Convert.ToInt16(arrRo[20], 16));
-        status['Fault' : Ep2000Model.FaultDic[(int) Convert.ToInt16(arrRo[21], 16)];
-        status['Alarm' : Convert.ToString(Convert.ToInt16(arrRo[22], 16), 2).PadLeft(4, '0');
-        status['ChargeState' : Enum.GetName(typeof (EPChargeState), (object) Convert.ToInt16(arrRo[23], 16));
-        status['ChargeFlag' : Enum.GetName(typeof (EPChargeFlag), (object) Convert.ToInt16(arrRo[24], 16));
-        status['MainSw' : Enum.GetName(typeof (EPMainSW), (object) Convert.ToInt16(arrRo[25], 16));
-        status['DelayType
-        """
-
+    def _translate_status(in_buffer: bytes, report: dict) -> dict:
         data = [
             (int.from_bytes(in_buffer[i:i + 2], byteorder=BYTE_ORDER)) for i in range(0, len(in_buffer), 2)
         ]
-
-        status['meta-data'] = {
+        report['meta-data'] = {
             'hex-string': ' '.join([f'{byte:02X}' for byte in in_buffer]),
             'data': data,
             'Model': EP2000.MODEL,
         }
-
         # ep2000Model.MachineType = arrRo[0];
         index = 0
-        status['MachineType'] = (index, data[index], f'{data[index]}')
+        report['MachineType'] = (index, data[index], f'{data[index]}')
         # ep2000Model.SoftwareVersion = Convert.ToInt16(arrRo[1], 16).ToString();
         index += 1
-        status['SoftwareVersion'] = (index, data[index], f'{data[index]}')
+        report['SoftwareVersion'] = (index, data[index], f'{data[index]}')
         # ep2000Model.WorkState = Enum.GetName(typeof (EPWokrState), (object) Convert.ToInt16(arrRo[2], 16));
-        EP_WORK_STATE = {
-            1: 'INIT',
-            2: 'SELF_CHECK',
-            3: 'BACKUP',
-            4: 'LINE',
-            5: 'STOP',
-            6: 'POWER_OFF',
-            7: 'GRID_CHG',
-            8: 'SOFT_START',
-        }
         index += 1
-        status['WorkState'] = (index, data[index], EP_WORK_STATE.get(data[index], 'N/A'))
+        report['WorkState'] = (index, data[index], EP2000Enums.EP_WORK_STATE.get(data[index], 'N/A'))
         # ep2000Model.BatClass = Convert.ToInt16(arrRo[3], 16).ToString() + "V";
         index += 1
-        status['BatClass'] = (index, data[index], data[index])
+        report['BatClass'] = (index, data[index], data[index])
         # ep2000Model.RatedPower = Convert.ToInt16(arrRo[4], 16).ToString();
         index += 1
-        status['RatedPower'] = (index, data[index], data[index])
+        report['RatedPower'] = (index, data[index], data[index])
         # ep2000Model.GridVoltage = ((double) Convert.ToInt16(arrRo[5], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['GridVoltage'] = (index, data[index], round(data[index] * 0.1, 1))
+        report['GridVoltage'] = (index, data[index], round(data[index] * 0.1, 1))
         # ep2000Model.GridFrequency = ((double) Convert.ToInt16(arrRo[6], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['GridFrequency'] = (index, data[index], round(data[index] * 0.1, 1))
+        report['GridFrequency'] = (index, data[index], round(data[index] * 0.1, 1))
         # ep2000Model.OutputVoltage = ((double) Convert.ToInt16(arrRo[7], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['OutputVoltage'] = (index, data[index], round(data[index] * 0.1, 1))
+        report['OutputVoltage'] = (index, data[index], round(data[index] * 0.1, 1))
         # ep2000Model.OutputFrequency = ((double) Convert.ToInt16(arrRo[8], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['OutputFrequency'] = (index, data[index], round(data[index] * 0.1, 1))
+        report['OutputFrequency'] = (index, data[index], round(data[index] * 0.1, 1))
         # ep2000Model.LoadCurrent = ((double) Convert.ToInt16(arrRo[9], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['LoadCurrent'] = (index, data[index], round(data[index] * 0.1, 1))
+        report['LoadCurrent'] = (index, data[index], round(data[index] * 0.1, 1))
         # ep2000Model.LoadPower = Convert.ToInt16(arrRo[10], 16).ToString();
         index += 1
-        status['LoadPower'] = (index, data[index], data[index])
+        report['LoadPower'] = (index, data[index], data[index])
         # Undocumented 11
         index += 1
-        status[f'Undocumented:{index}'] = (index, data[index], data[index])
+        report[f'Undocumented:{index}'] = (index, data[index], data[index])
         # ep2000Model.LoadPercent = Convert.ToInt16(arrRo[12], 16).ToString();
         index += 1
-        status['LoadPercent'] = (index, data[index], data[index])
+        report['LoadPercent'] = (index, data[index], data[index])
         # ep2000Model.LoadState = Enum.GetName(typeof (EPLoadState), (object) Convert.ToInt16(arrRo[13], 16));
-        EP_LOAD_STATE = {
-            0: 'LOAD_NORMAL',
-            1: 'LOAD_ALARM',
-            2: 'OVER_LOAD',
-        }
         index += 1
-        status['LoadState'] = (index, data[index], EP_LOAD_STATE.get(data[index], 'N/A'))
+        report['LoadState'] = (index, data[index], EP2000Enums.EP_LOAD_STATE.get(data[index], 'N/A'))
         # ep2000Model.BatteryVoltage = ((double) Convert.ToInt16(arrRo[14], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['BatteryVoltage'] = (index, data[index], round(data[index] * 0.1, 1))
+        report['BatteryVoltage'] = (index, data[index], round(data[index] * 0.1, 1))
         # ep2000Model.BatteryCurrent = ((double) Convert.ToInt16(arrRo[15], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture);
         index += 1
-        status['BatteryCurrent'] = (index, data[index], round(data[index] * 0.1, 1))
+        report['BatteryCurrent'] = (index, data[index], round(data[index] * 0.1, 1))
         # Undocumented 16
         index += 1
-        status[f'Undocumented:{index}'] = (index, data[index], data[index])
+        report[f'Undocumented:{index}'] = (index, data[index], data[index])
         # ep2000Model.BatterySoc = Convert.ToInt16(arrRo[17], 16).ToString();
         index += 1
-        status['BatterySoc'] = (index, data[index], data[index])
+        report['BatterySoc'] = (index, data[index], data[index])
         # ep2000Model.TransformerTemp = Convert.ToInt16(arrRo[18], 16).ToString();
         index += 1
-        status['TransformerTemp'] = (index, data[index], data[index])
+        report['TransformerTemp'] = (index, data[index], data[index])
         # ep2000Model.AvrState = Enum.GetName(typeof (EPAVRState), (object) Convert.ToInt16(arrRo[19], 16));
-        EP_AVR_STATE = {
-            0: 'AVR_BYPASS',
-            1: 'AVR_STEPDWON',
-            2: 'AVR_BOOST'
-        }
         index += 1
-        status['AvrState'] = (index, data[index], EP_AVR_STATE.get(data[index], 'N/A'))
+        report['AvrState'] = (index, data[index], EP2000Enums.EP_AVR_STATE.get(data[index], 'N/A'))
         # ep2000Model.BuzzerState = Enum.GetName(typeof (EPBuzzerState), (object) Convert.ToInt16(arrRo[20], 16));
-        EP_BUZZER_STATE = {
-            0: 'BUZZ_OFF',
-            1: 'BUZZ_BLEW',
-            2: 'BUZZ_ALARM',
-        }
         index += 1
-        status['BuzzerState'] = (index, data[index], EP_BUZZER_STATE.get(data[index], 'N/A'))
+        report['BuzzerState'] = (index, data[index], EP2000Enums.EP_BUZZER_STATE.get(data[index], 'N/A'))
         # ep2000Model.Fault = Ep2000Model.FaultDic[(int) Convert.ToInt16(arrRo[21], 16)];
-        FAULT_DICTIONARY = {0: "", 1: "Fan is locked when inverter is off", 2: "Inverter transformer over temperature",
-                            3: "battery voltage is too high", 4: "battery voltage is too low",
-                            5: "Output short circuited", 6: "Inverter output voltage is high", 7: "Overload time out",
-                            8: "Inverter bus voltage is too high", 9: "Bus soft start failed", 11: "Main relay failed",
-                            21: "Inverter output voltage sensor error", 22: "Inverter grid voltage sensor error",
-                            23: "Inverter output current sensor error", 24: "Inverter grid current sensor error",
-                            25: "Inverter load current sensor error", 26: "Inverter grid over current error",
-                            27: "Inverter radiator over temperature", 31: "Solar charger battery voltage class error",
-                            32: "Solar charger current sensor error", 33: "Solar charger current is uncontrollable",
-                            41: "Inverter grid voltage is low", 42: "Inverter grid voltage is high",
-                            43: "Inverter grid under frequency", 44: "Inverter grid over frequency",
-                            51: "Inverter over current protection error", 52: "Inverter bus voltage is too low",
-                            53: "Inverter soft start failed", 54: "Over DC voltage in AC output",
-                            56: "Battery connection is open", 57: "Inverter control current sensor error",
-                            58: "Inverter output voltage is too low", 61: "Fan is locked when inverter is on.",
-                            62: "Fan2 is locked when inverter is on.", 63: "Battery is over-charged.",
-                            64: "Low battery", 67: "Overload", 70: "Output power Derating",
-                            72: "Solar charger stops due to low battery",
-                            73: "Solar charger stops due to high PV voltage",
-                            74: "Solar charger stops due to over load", 75: "Solar charger over temperature",
-                            76: "PV charger communication error", 77: "Parameter error"}
         index += 1
-        status['Fault'] = (index, data[index], FAULT_DICTIONARY.get(data[index], 'N/A'))
+        report['Fault'] = (index, data[index], EP2000Enums.FAULT_DICTIONARY.get(data[index], 'N/A'))
         # ep2000Model.Alarm = Convert.ToString(Convert.ToInt16(arrRo[22], 16), 2).PadLeft(4, '0');
         index += 1
-        status['Alarm'] = (index, data[index], f'{data[index]:04}')
+        report['Alarm'] = (index, data[index], f'{data[index]:04}')
         # ep2000Model.ChargeState = Enum.GetName(typeof (EPChargeState), (object) Convert.ToInt16(arrRo[23], 16));
-        EP_CHARGE_STATE = {
-            0: 'CC',
-            1: 'CV',
-            2: 'FV',
-        }
         index += 1
-        status['ChargeState'] = (index, data[index], EP_CHARGE_STATE.get(data[index], 'N/A'))
+        report['ChargeState'] = (index, data[index], EP2000Enums.EP_CHARGE_STATE.get(data[index], 'N/A'))
         # ep2000Model.ChargeFlag = Enum.GetName(typeof (EPChargeFlag), (object) Convert.ToInt16(arrRo[24], 16));
-        EP_CHARGE_FLAG = {
-            0: 'UN_CHARGE',
-            1: 'CHARGED',
-        }
         index += 1
-        status['ChargeFlag'] = (index, data[index], EP_CHARGE_FLAG.get(data[index], 'N/A'))
+        report['ChargeFlag'] = (index, data[index], EP2000Enums.EP_CHARGE_FLAG.get(data[index], 'N/A'))
         # ep2000Model.MainSw = Enum.GetName(typeof (EPMainSW), (object) Convert.ToInt16(arrRo[25], 16));
-        EP_MAIN_SWITCH = {
-            0: 'OFF',
-            1: 'ON',
-        }
         index += 1
-        status['MainSwitch'] = (index, data[index], EP_MAIN_SWITCH.get(data[index], 'N/A'))
+        report['MainSwitch'] = (index, data[index], EP2000Enums.EP_MAIN_SWITCH.get(data[index], 'N/A'))
         # ep2000Model.DelayType = Ep2000Server.Rangelist.FirstOrDefault<EffectiveRange>(
         # (Func<EffectiveRange, bool>) (s => s.Kind == "Ep2000Pro" && s.Name == "DelayType" && s.Id == (int) Convert.ToInt16(arrRo[26], 16)))?.Value;
         # ep2000Model.DelayType = Ep2000Server.Rangelist.FirstOrDefault<EffectiveRange>(new Func<EffectiveRange, bool>((object) cDisplayClass40, __methodptr(\u003CGetDataFromProt\u003Eb__0)))?.Value;
-        DELAY_TYPE = {
-            0: 'STANDARD',
-            1: 'LONG_DELAY',
-        }
         index += 1
-        status['DelayType'] = (index, data[index], DELAY_TYPE.get(data[index], 'N/A'))
-        return status
+        report['DelayType'] = (index, data[index], EP2000Enums.DELAY_TYPE.get(data[index], 'N/A'))
+        return report
+
+    def read_setup(self) -> dict:
+        report = {}
+        in_buffer = self._send(EP2000.READ_SETUP)
+        if not self._valid_crc(in_buffer):
+            return {'error': 'CRC failed'}
+        in_buffer = self._preprocess(in_buffer)
+        self._translate_setup(in_buffer, report)
+        return report
+
+    @staticmethod
+    def _translate_setup(in_buffer: bytes, report: dict) -> dict:
+        data = [
+            (int.from_bytes(in_buffer[i:i + 2], byteorder=BYTE_ORDER)) for i in range(0, len(in_buffer), 2)
+        ]
+        report['meta-data'] = {
+            'hex-string': ' '.join([f'{byte:02X}' for byte in in_buffer]),
+            'data': data,
+            'Model': EP2000.MODEL,
+        }
+        # ep2000Model.GridFrequencyType = Ep2000Server.Rangelist.FirstOrDefault<EffectiveRange>(new Func<EffectiveRange, bool>((object) cDisplayClass40, __methodptr(\u003CGetDataFromProt\u003Eb__1)))?.Value;
+        index = 0
+        report['GridFrequencyType'] = (index, data[index], EP2000Enums.GRID_FREQUENCY_TYPE.get(data[index], 'N/A'), 'Hz')
+        # ep2000Model.GridVoltageType = Convert.ToInt16(cDisplayClass40.arrRw[1], 16).ToString() + " V";
+        index += 1
+        report['GridVoltageType'] = (index, data[index], f'{data[index]}')
+        # ep2000Model.BatteryLowVoltage = ((double) Convert.ToInt16(cDisplayClass40.arrRw[2], 16) * 0.1).ToString("F1") + "V";
+        index += 1
+        report['BatteryLowVoltage'] = (index, data[index], f'{data[index]}')
+        # ep2000Model.ConstantChargeVoltage = ((double) Convert.ToInt16(cDisplayClass40.arrRw[3], 16) * 0.1).ToString("F1") + "V";
+        index += 1
+        report['ConstantChargeVoltage'] = (index, data[index], f'{data[index]}')
+        # ep2000Model.FloatChargeVoltage = ((double) Convert.ToInt16(cDisplayClass40.arrRw[4], 16) * 0.1).ToString((IFormatProvider) CultureInfo.InvariantCulture) + "V";
+        index += 1
+        report['FloatChargeVoltage'] = (index, data[index], f'{data[index]}')
+        # ep2000Model.BulkChargeCurrent = Convert.ToInt16(cDisplayClass40.arrRw[5], 16).ToString((IFormatProvider) CultureInfo.InvariantCulture) + "A";
+        index += 1
+        report['BulkChargeCurrent'] = (index, data[index], f'{data[index]}')
+        # ep2000Model.BuzzerSilence = Enum.GetName(typeof (EPBuzzerSilence), (object) Convert.ToInt16(cDisplayClass40.arrRw[6], 16));
+        index += 1
+        report['BuzzerSilence'] = (index, data[index], f'{data[index]}')
+        # ep2000Model.EnableGridCharge = Convert.ToInt16(cDisplayClass40.arrRw[7], 16) == (short) 0 ? "Enable" : "Disable";
+        index += 1
+        report['EnableGridCharge'] = (index, data[index], f'{data[index]}')
+        # ep2000Model.EnableKeySound = Convert.ToInt16(cDisplayClass40.arrRw[8], 16) == (short) 0 ? "Enable" : "Disable";
+        index += 1
+        report['EnableKeySound'] = (index, data[index], f'{data[index]}')
+        # ep2000Model.EnableBacklight = Convert.ToInt16(cDisplayClass40.arrRw[9], 16) == (short) 0 ? "Disable" : "Enable";
+        index += 1
+        report['EnableBacklight'] = (index, data[index], f'{data[index]}')
+        return report
 
     def _send(self, command: Tuple[str, int]):
         command_string, result_length = command
@@ -466,15 +519,22 @@ def main():
     for i in range(len(inverters)):
         inverter = inverters[i]
         print(inverter)
-        sense = inverter.sense()
-        pprint.pprint(f'sense {sense}')
-        status = inverter.status()
-        for key, value in status.items():
-            if key == 'meta-data':
-                pprint.pprint(f'{key:16}: {value}')
-                continue
-            _index, _raw_value, _str_value = value
-            pprint.pprint(f'{key:16}: {_index:2} {_raw_value:5} {_str_value}')
+        report = inverter.sense()
+        print(tabulate(
+            [[key, value] for key, value in report.items()],
+            headers=['Name', 'Value']
+        ))
+        report = inverter.status()
+        # for key, value in report.items():
+        #     if key == 'meta-data':
+        #         pprint.pprint(f'{key:16}: {value}')
+        #         continue
+        #     _index, _raw_value, _str_value = value
+        #     pprint.pprint(f'{key:16}: {_index:2} {_raw_value:5} {_str_value}')
+        print(tabulate(
+            [[key, list(value)] for key, value in report.items() if key != 'meta-data'],
+            headers=['Key', 'Index', 'Raw', 'Value']
+        ))
     pass
 
 
