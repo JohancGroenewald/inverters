@@ -1,7 +1,6 @@
 import time
 from argparse import ArgumentParser
 from typing import Tuple
-from decimal import Decimal
 
 from tabulate import tabulate
 import serial
@@ -184,8 +183,8 @@ class EP2000(serial.Serial):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.index = Inverter.INDEX
-        Inverter.INDEX += 1
+        self.index = self.INDEX
+        self.INDEX += 1
 
     def sense(self) -> dict:
         report = {}
