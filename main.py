@@ -27,6 +27,8 @@ BASIC_STATUS = [
     'WorkState',
     'LoadPower',
     'LoadPercent',
+    'BatteryVoltage',
+    'BatteryCurrent',
     'BatterySoc',
     'TransformerTemp',
     'ChargeFlag',
