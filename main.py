@@ -1,12 +1,13 @@
+import os
 import datetime
 from argparse import ArgumentParser
 from typing import Tuple
-import os
-import json
 
+import serial
+import psycopg2
+from dotenv import dotenv_values
 from pid.decorator import pidfile
 from tabulate import tabulate
-import serial
 from serial.tools.list_ports import comports
 
 
@@ -15,10 +16,13 @@ class PathDoesNotExistError(Exception):
     pass
 
 
+config = dotenv_values(".env")
+
 timestamp = datetime.datetime.now()
 timestamp_string = timestamp.strftime("%Y%m%d")
 
 BYTE_ORDER = 'big'
+PID_NAME = '/var/tmp/inverters.pid'
 NEWLINE = '\n'
 COLUMN_SEPARATOR = '|'
 LIST_SEPARATOR = ','
@@ -36,6 +40,7 @@ ap.add_argument('--setup', action="store_true")
 ap.add_argument('--print', action="store_true")
 ap.add_argument('--log', action="store_true")
 ap.add_argument('--log-path', default=DEFAULT_LOG_PATH)
+ap.add_argument('--database', action="store_true")
 args = ap.parse_args()
 
 if args.list:
@@ -52,6 +57,15 @@ if args.log:
         raise NotADirectoryError(f'{args.log_path}')
     if not os.path.isdir(args.log_path):
         raise PathDoesNotExistError(f'{args.log_path}')
+if args.database:
+    connection = psycopg2.connect(
+        host=config['DB_HOST'],
+        database=config['DB_DATABASE'],
+        user=config['DB_USER'],
+        password=config['DB_PASSWORD']
+    )
+else:
+    connection = None
 if args.basic:
     # args.list
     # args.basic
@@ -534,7 +548,7 @@ class EP2000(serial.Serial):
         return in_buffer[_open:_close]
 
 
-@pidfile()
+@pidfile(pidname=PID_NAME)
 def main():
     # -----------------------------------------------------------------------------------------------------------------
     # DONE: list available serial ports
@@ -544,7 +558,8 @@ def main():
     # DONE: translate incoming data
     # DONE: write status to log
     # DONE: test from cron
-    # TODO: add PID file
+    # DONE: add PID file
+    # DONE: roll log file
     # TODO: write status to database
     # exit
     # -----------------------------------------------------------------------------------------------------------------
