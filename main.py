@@ -4,6 +4,7 @@ from typing import Tuple
 import os
 import json
 
+from pid.decorator import pidfile
 from tabulate import tabulate
 import serial
 from serial.tools.list_ports import comports
@@ -528,11 +529,12 @@ class EP2000(serial.Serial):
         Remove header: first 3 bytes [handshake + data bytes returned]
         Remove CRC   : last 2 bytes
         """
-        open = 3
-        close = -2
-        return in_buffer[open:close]
+        _open = 3
+        _close = -2
+        return in_buffer[_open:_close]
 
 
+@pidfile()
 def main():
     # -----------------------------------------------------------------------------------------------------------------
     # DONE: list available serial ports
@@ -540,7 +542,9 @@ def main():
     # DONE: query inverters
     # TODO: calculate CRC (skip for now)
     # DONE: translate incoming data
-    # TODO: write status to log
+    # DONE: write status to log
+    # DONE: test from cron
+    # TODO: add PID file
     # TODO: write status to database
     # exit
     # -----------------------------------------------------------------------------------------------------------------
