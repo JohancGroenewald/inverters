@@ -17,7 +17,8 @@ class PathDoesNotExistError(Exception):
     pass
 
 
-config = dotenv_values(".env", interpolate=False)
+config = dotenv_values(".env")
+print(config)
 
 timestamp = datetime.datetime.now()
 timestamp_string = timestamp.strftime("%Y%m%d")
