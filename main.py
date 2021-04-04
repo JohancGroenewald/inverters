@@ -62,10 +62,10 @@ if args.log:
     if not os.path.isdir(args.log_path):
         raise PathDoesNotExistError(f'{args.log_path}')
 if args.database:
-    db_host = config['DB_HOST'],
-    db_port = config['DB_PORT'],
-    db_database = config['DB_DATABASE'],
-    db_user = config['DB_USER'],
+    db_host = config['DB_HOST']
+    db_port = config['DB_PORT']
+    db_database = config['DB_DATABASE']
+    db_user = config['DB_USER']
     db_password = config['DB_PASSWORD']
     try:
         db_url = f'postgres://{db_user}:{db_password}@{db_host}:{db_port}/{db_database}'
