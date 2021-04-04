@@ -1,10 +1,11 @@
+import sys
 import os
 import datetime
 from argparse import ArgumentParser
 from typing import Tuple
 
 import serial
-import postgresql
+import psycopg2
 from dotenv import dotenv_values
 from pid.decorator import pidfile
 from tabulate import tabulate
@@ -20,6 +21,8 @@ config = dotenv_values(".env")
 
 timestamp = datetime.datetime.now()
 timestamp_string = timestamp.strftime("%Y%m%d")
+
+connection = None
 
 BYTE_ORDER = 'big'
 PID_NAME = '/var/tmp/inverters.pid'
@@ -58,18 +61,25 @@ if args.log:
     if not os.path.isdir(args.log_path):
         raise PathDoesNotExistError(f'{args.log_path}')
 if args.database:
-    host = config['DB_HOST'],
-    port = config['DB_PORT'],
-    database = config['DB_DATABASE'],
-    user = config['DB_USER'],
-    password = config['DB_PASSWORD']
-    connection = postgresql.open(
-        f'pq://{user}:{password}@{host}:{port}/{database}'
-    )
-    get_test_data = connection.prepare("SELECT * from test")
-    print(get_test_data())
-else:
-    connection = None
+    db_host = config['DB_HOST'],
+    db_port = config['DB_PORT'],
+    db_database = config['DB_DATABASE'],
+    db_user = config['DB_USER'],
+    db_password = config['DB_PASSWORD']
+    try:
+        connection = psycopg2.connect(
+            host=f'{db_host}', database=f'{db_database}', user=f'{db_user}', password=f'{db_password}'
+        )
+        cur = connection.cursor()
+        cur.execute('SELECT version()')
+        version = cur.fetchone()[0]
+        print(version)
+    except psycopg2.DatabaseError as e:
+        print(f'Error {e}')
+        sys.exit(1)
+    finally:
+        if connection:
+            connection.close()
 if args.basic:
     # args.list
     # args.basic

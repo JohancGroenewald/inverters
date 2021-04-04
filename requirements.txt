@@ -1,5 +1,6 @@
-pyserial~=3.5
-python-dotenv~=0.17.0
-pid~=3.0.4
-tabulate~=0.8.9
-py-postgresql~=1.2.2
+wheel
+pyserial
+python-dotenv
+pid
+tabulate
+psycopg2
