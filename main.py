@@ -68,7 +68,8 @@ if args.database:
     db_password = config['DB_PASSWORD']
     try:
         connection = psycopg2.connect(
-            host=f'{db_host}', database=f'{db_database}', user=f'{db_user}', password=f'{db_password}'
+            # host='192.168.0.152', database=f'{db_database}', user=f'{db_user}', password=f'{db_password}'
+            'postgres://postgres:_Groenewald1@192.168.0.152:5432/inverters'
         )
         cur = connection.cursor()
         cur.execute('SELECT version()')
