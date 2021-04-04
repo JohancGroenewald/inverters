@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from typing import Tuple
 
 import serial
-import psycopg2
+import postgresql
 from dotenv import dotenv_values
 from pid.decorator import pidfile
 from tabulate import tabulate
@@ -58,12 +58,16 @@ if args.log:
     if not os.path.isdir(args.log_path):
         raise PathDoesNotExistError(f'{args.log_path}')
 if args.database:
-    connection = psycopg2.connect(
-        host=config['DB_HOST'],
-        database=config['DB_DATABASE'],
-        user=config['DB_USER'],
-        password=config['DB_PASSWORD']
+    host = config['DB_HOST'],
+    port = config['DB_PORT'],
+    database = config['DB_DATABASE'],
+    user = config['DB_USER'],
+    password = config['DB_PASSWORD']
+    connection = postgresql.open(
+        f'pq://{user}:{password}@{host}:{port}/{database}'
     )
+    get_test_data = connection.prepare("SELECT * from test")
+    print(get_test_data())
 else:
     connection = None
 if args.basic:
