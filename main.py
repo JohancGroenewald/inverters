@@ -68,9 +68,9 @@ if args.database:
     db_user = config['DB_USER'],
     db_password = config['DB_PASSWORD']
     try:
-        connection = psycopg2.connect(
-            f'postgres://{db_user}:{db_password}@{db_host}:{db_port}/{db_database}'
-        )
+        db_url = f'postgres://{db_user}:{db_password}@{db_host}:{db_port}/{db_database}'
+        print(db_url)
+        connection = psycopg2.connect(db_url)
         cur = connection.cursor()
         cur.execute('SELECT * from test')
         version = cur.fetchone()[0]
