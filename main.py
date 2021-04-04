@@ -18,19 +18,19 @@ class PathDoesNotExistError(Exception):
 
 
 config = dotenv_values(".env")
-print(config)
 
 timestamp = datetime.datetime.now()
 timestamp_string = timestamp.strftime("%Y%m%d")
 
 connection = None
 
-BYTE_ORDER = 'big'
-PID_NAME = '/var/tmp/inverters.pid'
-NEWLINE = '\n'
-COLUMN_SEPARATOR = '|'
-LIST_SEPARATOR = ','
-DEFAULT_LOG_PATH = 'log'
+BYTE_ORDER = config['BYTE_ORDER']
+PID_NAME = config['PID_NAME']
+NEWLINE = config['NEWLINE']
+COLUMN_SEPARATOR = config['COLUMN_SEPARATOR']
+LIST_SEPARATOR = config['LIST_SEPARATOR']
+DEFAULT_LOG_PATH = config['DEFAULT_LOG_PATH']
+
 SENSE_LOG_FILE_MASK = f'sense-{timestamp_string}.log'
 STATUS_LOG_FILE_MASK = f'status-{timestamp_string}.log'
 SETUP_LOG_FILE_MASK = f'setup-{timestamp_string}.log'
@@ -67,20 +67,8 @@ if args.database:
     db_database = config['DB_DATABASE']
     db_user = config['DB_USER']
     db_password = config['DB_PASSWORD']
-    try:
-        db_url = f'postgres://{db_user}:{db_password}@{db_host}:{db_port}/{db_database}'
-        print(db_url)
-        connection = psycopg2.connect(db_url)
-        cur = connection.cursor()
-        cur.execute('SELECT * from test')
-        version = cur.fetchone()[0]
-        print(version)
-    except psycopg2.DatabaseError as e:
-        print(f'Error {e}')
-        sys.exit(1)
-    finally:
-        if connection:
-            connection.close()
+    db_url = f'postgres://{db_user}:{db_password}@{db_host}:{db_port}/{db_database}'
+    connection = psycopg2.connect(db_url)
 if args.basic:
     # args.list
     # args.basic
