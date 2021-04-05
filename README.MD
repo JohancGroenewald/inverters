@@ -19,16 +19,19 @@ source venv/bin/activate.csh
 ```
 ## Configuration File Requirements (.env) 
 ```dotenv
-DB_HOST="<host>"
-DB_PORT="<port>"
-DB_DATABASE="<database>"
-DB_USER="<user>"
-DB_PASSWORD="<password>"
-
+# Application Level
+# Required Environment Variables
 BYTE_ORDER="big"
 PID_NAME="<your-pid-file-location>"
 NEWLINE="\n"
 COLUMN_SEPARATOR="|"
 LIST_SEPARATOR=","
-DEFAULT_LOG_PATH="<your-log-files-location>"
+
+# Database Level
+# Optional Environment Variables
+DB_HOST="<host>"
+DB_PORT="<port>"
+DB_DATABASE="<database>"
+DB_USER="<user>"
+DB_PASSWORD="<password>"
 ```

@@ -17,35 +17,41 @@ class PathDoesNotExistError(Exception):
     pass
 
 
-config = dotenv_values(".env")
-
 timestamp = datetime.datetime.now()
-timestamp_string = timestamp.strftime("%Y%m%d")
-
+timestamp_string = timestamp.strftime('%Y%m%d')
 db_connection = None
+
+DEFAULT_LOG_PATH = 'log'
+DEFAULT_ENV_FILE = '.env'
+DEFAULT_ENV_PATH = '.'
+
+ap = ArgumentParser(description='Query connected inverters',)
+ap.add_argument('--list', action='store_true')
+ap.add_argument('--database', action='store_true')
+ap.add_argument('--basic', action='store_true')
+ap.add_argument('--sense', action='store_true')
+ap.add_argument('--status', action='store_true')
+ap.add_argument('--setup', action='store_true')
+ap.add_argument('--print', action='store_true')
+ap.add_argument('--log', action='store_true')
+ap.add_argument('--log-path', default=DEFAULT_LOG_PATH)
+ap.add_argument('--env', default=DEFAULT_ENV_FILE)
+ap.add_argument('--env-path', default=DEFAULT_ENV_PATH)
+args = ap.parse_args()
+
+unc = os.path.join(args.env_path, args.env)
+print(unc)
+config = dotenv_values(unc)
 
 BYTE_ORDER = config['BYTE_ORDER']
 PID_NAME = config['PID_NAME']
 NEWLINE = config['NEWLINE']
 COLUMN_SEPARATOR = config['COLUMN_SEPARATOR']
 LIST_SEPARATOR = config['LIST_SEPARATOR']
-DEFAULT_LOG_PATH = config['DEFAULT_LOG_PATH']
 
 SENSE_LOG_FILE_MASK = f'sense-{timestamp_string}.log'
 STATUS_LOG_FILE_MASK = f'status-{timestamp_string}.log'
 SETUP_LOG_FILE_MASK = f'setup-{timestamp_string}.log'
-
-ap = ArgumentParser(description='Query connected inverters',)
-ap.add_argument('--list', action="store_true")
-ap.add_argument('--basic', action="store_true")
-ap.add_argument('--sense', action="store_true")
-ap.add_argument('--status', action="store_true")
-ap.add_argument('--setup', action="store_true")
-ap.add_argument('--print', action="store_true")
-ap.add_argument('--log', action="store_true")
-ap.add_argument('--log-path', default=DEFAULT_LOG_PATH)
-ap.add_argument('--database', action="store_true")
-args = ap.parse_args()
 
 if args.list:
     # args.list
