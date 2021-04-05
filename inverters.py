@@ -40,7 +40,6 @@ ap.add_argument('--env-path', default=DEFAULT_ENV_PATH)
 args = ap.parse_args()
 
 unc = os.path.join(args.env_path, args.env)
-print(unc)
 config = dotenv_values(unc)
 
 BYTE_ORDER = config['BYTE_ORDER']
