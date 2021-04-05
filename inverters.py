@@ -562,8 +562,13 @@ def main():
     # DONE: write status to log
     # DONE: test from cron
     # DONE: add PID file
+    # DONE: add .env file
     # DONE: roll log file
-    # TODO: write status to database
+    # DONE: write status to database
+    # TODO: document command line arguments
+    # TODO: add sensing code
+    # TODO: log file location from within cron
+    # TODO: create shell script for cron to run
     # exit
     # -----------------------------------------------------------------------------------------------------------------
     inverters = [
