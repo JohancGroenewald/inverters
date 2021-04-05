@@ -642,6 +642,7 @@ def main():
                 _query = 'INSERT INTO incoming_status (unixtime, source, data) values (%s, %s, %s)'
                 _cursor = db_connection.cursor()
                 _cursor.execute(_query, buffer)
+                db_connection.commit()
                 pass
         # -------------------------------------------------------------------------------------------------------------
         if args.setup:
@@ -671,3 +672,5 @@ if __name__ == '__main__':
         print(Inverters.list_ports())
     else:
         main()
+        if db_connection:
+            db_connection.close()
