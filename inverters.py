@@ -572,8 +572,9 @@ def main():
     # DONE: write status to database
     # TODO: document command line arguments
     # TODO: add sensing code
-    # TODO: log file location from within cron
-    # TODO: create shell script for cron to run
+    # DONE: env file name and location arguments
+    # DONE: log file location from within cron
+    # DONE: create shell script for cron to run
     # exit
     # -----------------------------------------------------------------------------------------------------------------
     inverters = [
