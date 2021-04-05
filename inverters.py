@@ -592,6 +592,19 @@ def main():
                 with open(unc, 'a') as f:
                     f.write(COLUMN_SEPARATOR.join(buffer))
                     f.write(NEWLINE)
+            if args.database and db_connection:
+                buffer = [
+                    f'{timestamp.timestamp()}',
+                    f'{inverter.port}',
+                    COLUMN_SEPARATOR.join([
+                        f'{key}:{value}'
+                        for key, value in report.items()
+                    ])
+                ]
+                _query = 'INSERT INTO incoming_sense (unixtime, source, data) values (%s, %s, %s)'
+                _cursor = db_connection.cursor()
+                _cursor.execute(_query, buffer)
+                db_connection.commit()
         # -------------------------------------------------------------------------------------------------------------
         if args.status:
             report = inverter.status()
@@ -627,9 +640,6 @@ def main():
                     f.write(COLUMN_SEPARATOR.join(buffer))
                     f.write(NEWLINE)
             if args.database and db_connection:
-                """
-                insert into incoming_status (unixtime, source, data) values ();
-                """
                 buffer = [
                     f'{timestamp.timestamp()}',
                     f'{inverter.port}',
@@ -643,7 +653,6 @@ def main():
                 _cursor = db_connection.cursor()
                 _cursor.execute(_query, buffer)
                 db_connection.commit()
-                pass
         # -------------------------------------------------------------------------------------------------------------
         if args.setup:
             report = inverter.read_setup()
@@ -664,6 +673,20 @@ def main():
                 with open(unc, 'a') as f:
                     f.write(COLUMN_SEPARATOR.join(buffer))
                     f.write(NEWLINE)
+            if args.database and db_connection:
+                buffer = [
+                    f'{timestamp.timestamp()}',
+                    f'{inverter.port}',
+                    COLUMN_SEPARATOR.join([
+                        f'{key}:{LIST_SEPARATOR.join([f"{_item}" for _item in value])}'
+                        for key, value in report.items()
+                        if key != 'meta-data'
+                    ])
+                ]
+                _query = 'INSERT INTO incoming_setup (unixtime, source, data) values (%s, %s, %s)'
+                _cursor = db_connection.cursor()
+                _cursor.execute(_query, buffer)
+                db_connection.commit()
     # -----------------------------------------------------------------------------------------------------------------
 
 
