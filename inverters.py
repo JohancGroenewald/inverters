@@ -22,7 +22,7 @@ config = dotenv_values(".env")
 timestamp = datetime.datetime.now()
 timestamp_string = timestamp.strftime("%Y%m%d")
 
-connection = None
+db_connection = None
 
 BYTE_ORDER = config['BYTE_ORDER']
 PID_NAME = config['PID_NAME']
@@ -68,7 +68,7 @@ if args.database:
     db_user = config['DB_USER']
     db_password = config['DB_PASSWORD']
     db_url = f'postgres://{db_user}:{db_password}@{db_host}:{db_port}/{db_database}'
-    connection = psycopg2.connect(db_url)
+    db_connection = psycopg2.connect(db_url)
 if args.basic:
     # args.list
     # args.basic
@@ -626,6 +626,23 @@ def main():
                 with open(unc, 'a') as f:
                     f.write(COLUMN_SEPARATOR.join(buffer))
                     f.write(NEWLINE)
+            if args.database and db_connection:
+                """
+                insert into incoming_status (unixtime, source, data) values ();
+                """
+                buffer = [
+                    f'{timestamp.timestamp()}',
+                    f'{inverter.port}',
+                    COLUMN_SEPARATOR.join([
+                        f'{key}:{LIST_SEPARATOR.join([f"{_item}" for _item in value])}'
+                        for key, value in report.items()
+                        if key != 'meta-data'
+                    ])
+                ]
+                _query = 'INSERT INTO incoming_status (unixtime, source, data) values (%s, %s, %s)'
+                _cursor = db_connection.cursor()
+                _cursor.execute(_query, buffer)
+                pass
         # -------------------------------------------------------------------------------------------------------------
         if args.setup:
             report = inverter.read_setup()
