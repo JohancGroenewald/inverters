@@ -645,6 +645,7 @@ def main():
                     f.write(COLUMN_SEPARATOR.join(buffer))
                     f.write(NEWLINE)
             if args.database and db_connection:
+                _cursor = db_connection.cursor()
                 buffer = [
                     f'{timestamp.timestamp()}',
                     f'{inverter.port}',
@@ -655,7 +656,17 @@ def main():
                     ])
                 ]
                 _query = 'INSERT INTO incoming_status (unixtime, source, data) values (%s, %s, %s)'
-                _cursor = db_connection.cursor()
+                _cursor.execute(_query, buffer)
+                buffer = [
+                    f'{timestamp.timestamp()}',
+                    f'{inverter.port}',
+                    COLUMN_SEPARATOR.join([
+                        f'{key}:{_value}{_unit}'
+                        for key, (_index, _raw, _value, _unit) in report.items()
+                        if key in BASIC_STATUS
+                    ])
+                ]
+                _query = 'INSERT INTO incoming_basic (unixtime, source, data) values (%s, %s, %s)'
                 _cursor.execute(_query, buffer)
                 db_connection.commit()
         # -------------------------------------------------------------------------------------------------------------
