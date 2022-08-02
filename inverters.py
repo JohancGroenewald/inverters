@@ -127,7 +127,7 @@ class Inverters:
         attributes = [attribute.strip() for attribute in Inverters.list_ports.__doc__.split(',')]
         buffer = []
         padding = 18
-        for port in Inverters.port_list():
+        for port in comports():
             inner_buffer = []
             for attribute in attributes:
                 if hasattr(port, attribute):
