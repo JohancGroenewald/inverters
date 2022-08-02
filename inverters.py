@@ -142,7 +142,10 @@ class Inverters:
     def port_list():
         ports = []
         for port in comports():
-            ports.append(port.device)
+            if hasattr(port, 'device'):
+                value: str = getattr(port, 'device', None)
+                if value.startswith('/dev/cuaU'):
+                    ports.append(port.device)
         return ports
 
 
