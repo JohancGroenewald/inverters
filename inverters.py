@@ -136,10 +136,12 @@ class Inverters:
                         inner_buffer.append(f'{attribute:{padding}} {str(value())}')
                     else:
                         if attribute == 'device' and not value.startswith('/dev/cuaU'):
-                            continue
+                            inner_buffer = None
+                            break
                         inner_buffer.append(f'{attribute:{padding}} {str(value)}')
-            buffer.extend(inner_buffer)
-            buffer.append('-' * 40)
+            if inner_buffer:
+                buffer.extend(inner_buffer)
+                buffer.append('-' * 40)
         return '\n'.join(buffer)
 
     @staticmethod
