@@ -128,13 +128,17 @@ class Inverters:
         buffer = []
         padding = 18
         for port in Inverters.port_list():
+            inner_buffer = []
             for attribute in attributes:
                 if hasattr(port, attribute):
-                    value = getattr(port, attribute, None)
+                    value: str = getattr(port, attribute, None)
                     if callable(value):
-                        buffer.append(f'{attribute:{padding}} {str(value())}')
+                        inner_buffer.append(f'{attribute:{padding}} {str(value())}')
                     else:
-                        buffer.append(f'{attribute:{padding}} {str(value)}')
+                        if attribute == 'device' and not value.startswith('/dev/cuaU'):
+                            continue
+                        inner_buffer.append(f'{attribute:{padding}} {str(value)}')
+            buffer.extend(inner_buffer)
             buffer.append('-' * 40)
         return '\n'.join(buffer)
 
@@ -143,8 +147,7 @@ class Inverters:
         ports = []
         for port in comports():
             if hasattr(port, 'device'):
-                value: str = getattr(port, 'device', None)
-                if value.startswith('/dev/cuaU'):
+                if port.device.startswith('/dev/cuaU'):
                     ports.append(port.device)
         return ports
 
