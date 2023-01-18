@@ -323,21 +323,20 @@ class EP2000(serial.Serial):
         in_buffer = self._send(EP2000.STATUS, ignore_length_error)
         if not self._valid_crc(in_buffer):
             return {'error': 'CRC failed'}
+        if include_metadata:
+            report['meta-data'] = {
+                'hex-string': ' '.join([f'{byte:02X}' for byte in in_buffer]),
+                'Model': EP2000.MODEL,
+            }
         in_buffer = self._preprocess(in_buffer)
-        self._translate_status(in_buffer, report, meta_data=include_metadata)
+        self._translate_status(in_buffer, report)
         return report
 
     @staticmethod
-    def _translate_status(in_buffer: bytes, report: dict, meta_data=False) -> dict:
+    def _translate_status(in_buffer: bytes, report: dict) -> dict:
         data = [
             (int.from_bytes(in_buffer[i:i + 2], byteorder=BYTE_ORDER)) for i in range(0, len(in_buffer), 2)
         ]
-        if meta_data:
-            report['meta-data'] = {
-                'hex-string': ' '.join([f'{byte:02X}' for byte in in_buffer]),
-                'data': data,
-                'Model': EP2000.MODEL,
-            }
         # ep2000Model.MachineType = arrRo[0];
         index = 0
         report['MachineType'] = (index, data[index], data[index], '')
@@ -423,11 +422,16 @@ class EP2000(serial.Serial):
         report['DelayType'] = (index, data[index], EP2000Enums.DELAY_TYPE.get(data[index], 'N/A'), '')
         return report
 
-    def read_setup(self) -> dict:
+    def read_setup(self, include_metadata=False) -> dict:
         report = {}
         in_buffer = self._send(EP2000.READ_SETUP)
         if not self._valid_crc(in_buffer):
             return {'error': 'CRC failed'}
+        if include_metadata:
+            report['meta-data'] = {
+                'hex-string': ' '.join([f'{byte:02X}' for byte in in_buffer]),
+                'Model': EP2000.MODEL,
+            }
         in_buffer = self._preprocess(in_buffer)
         self._translate_setup(in_buffer, report)
         return report
@@ -437,12 +441,6 @@ class EP2000(serial.Serial):
         data = [
             (int.from_bytes(in_buffer[i:i + 2], byteorder=BYTE_ORDER)) for i in range(0, len(in_buffer), 2)
         ]
-        if meta_data:
-            report['meta-data'] = {
-                'hex-string': ' '.join([f'{byte:02X}' for byte in in_buffer]),
-                'data': data,
-                'Model': EP2000.MODEL,
-            }
         # ep2000Model.GridFrequencyType = Ep2000Server.Rangelist.FirstOrDefault<EffectiveRange>(new Func<EffectiveRange, bool>((object) cDisplayClass40, __methodptr(\u003CGetDataFromProt\u003Eb__1)))?.Value;
         index = 0
         report['GridFrequencyType'] = (index, data[index], EP2000Enums.GRID_FREQUENCY_TYPE.get(data[index], 'N/A'), 'Hz')
