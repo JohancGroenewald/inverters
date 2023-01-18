@@ -669,7 +669,7 @@ def main():
                 buffer.extend([
                     f'{key}:{LIST_SEPARATOR.join([f"{_item}" for _item in value])}'
                     for key, value in report.items()
-                    if key != 'meta-data'
+                    if args.include_metadata or key != 'meta-data'
                 ])
                 unc = os.path.join(args.log_path, STATUS_LOG_FILE_MASK)
                 with open(unc, 'a') as f:
