@@ -93,6 +93,8 @@ BASIC_STATUS = [
     'TransformerTemp',
     'ChargeFlag',
     'MainSwitch',
+    'GridVoltage',
+    'GridFrequency',
 ]
 
 
@@ -275,6 +277,18 @@ class EP2000(serial.Serial):
     RESTORE_FACTORY_SETTINGS = ("0A 10 7D 00 00 01 02 00 01 B9 A7", -1)
     REMOTE_RESET = ("0A 10 7D 01 00 01 02 00 01 B8 76", -1)
     REMOTE_SHUTDOWN = ("0A 10 7D 02 00 01 02 00 01 B8 45", -1)
+
+    """
+    AK R
+    0A 03  75 30  00  1B  1E B9  STATUS
+    0A 03  79 18  00  07  9C 28  READ SENSE
+    0A 03  79 18  00  0A  5D ED  READ SETUP
+    AK W
+    0A 10  79 18  00  0A  14
+    0A 10  7D 00  00  01  02 00  01 B9 A7
+    0A 10  7D 01  00  01  02 00  01 B8 76
+    0A 10  7D 02  00  01  02 00  01 B8 45
+    """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
