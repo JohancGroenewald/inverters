@@ -666,10 +666,15 @@ def main():
                 ))
             if args.log:
                 buffer = [f'{timestamp.timestamp()}', f'{inverter.port}']
+                if args.include_metadata and 'meta-data' in report:
+                    buffer.extend([
+                        f'{key}:{value}'
+                        for key, value in report['meta-data'].items()
+                    ])
                 buffer.extend([
                     f'{key}:{LIST_SEPARATOR.join([f"{_item}" for _item in value])}'
                     for key, value in report.items()
-                    if args.include_metadata or key != 'meta-data'
+                    if key != 'meta-data'
                 ])
                 unc = os.path.join(args.log_path, STATUS_LOG_FILE_MASK)
                 with open(unc, 'a') as f:
