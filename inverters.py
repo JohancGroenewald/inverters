@@ -34,6 +34,8 @@ ap.add_argument('--status', action='store_true')
 ap.add_argument('--setup', action='store_true')
 ap.add_argument('--print', action='store_true')
 ap.add_argument('--log', action='store_true')
+ap.add_argument('--ignore-length-error', action='store_true')
+ap.add_argument('--include-metadata', action='store_true')
 ap.add_argument('--log-path', default=DEFAULT_LOG_PATH)
 ap.add_argument('--env', default=DEFAULT_ENV_FILE)
 ap.add_argument('--env-path', default=DEFAULT_ENV_PATH)
@@ -316,13 +318,13 @@ class EP2000(serial.Serial):
         report['detected'] = report['hex-string'] == device_id
         return report
 
-    def status(self) -> dict:
+    def status(self, ignore_length_error=False, include_metadata=False) -> dict:
         report = {}
-        in_buffer = self._send(EP2000.STATUS)
+        in_buffer = self._send(EP2000.STATUS, ignore_length_error)
         if not self._valid_crc(in_buffer):
             return {'error': 'CRC failed'}
         in_buffer = self._preprocess(in_buffer)
-        self._translate_status(in_buffer, report)
+        self._translate_status(in_buffer, report, meta_data=include_metadata)
         return report
 
     @staticmethod
@@ -473,15 +475,15 @@ class EP2000(serial.Serial):
         report['EnableBacklight'] = (index, data[index], EP2000Enums.STATE.get(data[index], 'N/A'), '')
         return report
 
-    def _send(self, command: Tuple[str, int]):
+    def _send(self, command: Tuple[str, int], ignore_length_error: bool = False) -> bytes:
         command_string, result_length = command
         out_buffer = bytes.fromhex(command_string)
         count = super().write(out_buffer)
         if count != len(out_buffer):
             raise Inverters.SerialWriteException(f'Bytes written ({len(out_buffer)}) and written count ({count}) mismatch')
-        return self._receive(result_length)
+        return self._receive(result_length, ignore_length_error)
 
-    def _receive(self, result_length):
+    def _receive(self, result_length, ignore_length_error: bool = False) -> bytes:
         if result_length == -1:
             bytes_to_read = 100
         else:
@@ -490,7 +492,7 @@ class EP2000(serial.Serial):
         if result_length == -1:
             result_length = len(in_buffer)
             print(f'SERIAL RECEIVE PEEK LENGTH: {result_length}')
-        if result_length != len(in_buffer):
+        if not ignore_length_error and result_length != len(in_buffer):
             # print(f'Bytes read ({len(in_buffer)}) and result_length ({result_length}) mismatch')
             raise Inverters.SerialReadException(
                 f'Bytes read ({len(in_buffer)}) and result_length ({result_length}) mismatch')
@@ -641,7 +643,7 @@ def main():
                 db_connection.commit()
         # -------------------------------------------------------------------------------------------------------------
         if args.status:
-            report = inverter.status()
+            report = inverter.status(args.ignore_length_error, args.include_metadata)
             if args.print and not args.basic:
                 print(tabulate(
                     [
