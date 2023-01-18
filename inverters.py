@@ -323,9 +323,8 @@ class EP2000(serial.Serial):
         in_buffer = self._send(EP2000.STATUS, ignore_length_error)
         if not self._valid_crc(in_buffer):
             return {'error': 'CRC failed'}
-        if ignore_length_error and in_buffer[0] == 0x03 and in_buffer[1] == 0x36:
-            print('WARNING: EP2000 status length error')
-            # Expect 0A 03 36
+        if in_buffer[0] == 0x03 and in_buffer[1] == 0x36:
+            # Autocorrection of missing handshake byte. Expected 0A 03 36, received 03 36. Adding 0A.
             in_buffer = b'\x0A' + in_buffer[0:]
         if include_metadata:
             report['meta-data'] = {
