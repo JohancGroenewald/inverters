@@ -323,6 +323,9 @@ class EP2000(serial.Serial):
         in_buffer = self._send(EP2000.STATUS, ignore_length_error)
         if not self._valid_crc(in_buffer):
             return {'error': 'CRC failed'}
+        if ignore_length_error and in_buffer[0] == 0x03 and in_buffer[1] == 0x36:
+            # Expect 0A 03 36
+            in_buffer = 0x0A + in_buffer[0:]
         if include_metadata:
             report['meta-data'] = {
                 'hex-string': ' '.join([f'{byte:02X}' for byte in in_buffer]),
@@ -490,8 +493,9 @@ class EP2000(serial.Serial):
         if result_length == -1:
             result_length = len(in_buffer)
             print(f'SERIAL RECEIVE PEEK LENGTH: {result_length}')
-        if not ignore_length_error and result_length != len(in_buffer):
-            # print(f'Bytes read ({len(in_buffer)}) and result_length ({result_length}) mismatch')
+        if ignore_length_error:
+            return in_buffer
+        if result_length != len(in_buffer):
             raise Inverters.SerialReadException(
                 f'Bytes read ({len(in_buffer)}) and result_length ({result_length}) mismatch')
         return in_buffer
