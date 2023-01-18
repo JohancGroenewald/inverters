@@ -325,7 +325,7 @@ class EP2000(serial.Serial):
             return {'error': 'CRC failed'}
         if ignore_length_error and in_buffer[0] == 0x03 and in_buffer[1] == 0x36:
             # Expect 0A 03 36
-            in_buffer = 0x0A + in_buffer[0:]
+            in_buffer = b'\x0A' + in_buffer[0:]
         if include_metadata:
             report['meta-data'] = {
                 'hex-string': ' '.join([f'{byte:02X}' for byte in in_buffer]),
