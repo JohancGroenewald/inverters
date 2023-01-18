@@ -491,9 +491,9 @@ class EP2000(serial.Serial):
             result_length = len(in_buffer)
             print(f'SERIAL RECEIVE PEEK LENGTH: {result_length}')
         if result_length != len(in_buffer):
-            print(f'Bytes read ({len(in_buffer)}) and result_length ({result_length}) mismatch')
-            # raise Inverters.SerialReadException(
-            #     f'Bytes read ({len(in_buffer)}) and result_length ({result_length}) mismatch')
+            # print(f'Bytes read ({len(in_buffer)}) and result_length ({result_length}) mismatch')
+            raise Inverters.SerialReadException(
+                f'Bytes read ({len(in_buffer)}) and result_length ({result_length}) mismatch')
         return in_buffer
 
     @staticmethod
