@@ -495,6 +495,9 @@ class EP2000(serial.Serial):
             print(f'SERIAL RECEIVE PEEK LENGTH: {result_length}')
         if ignore_length_error:
             return in_buffer
+        if result_length > 0 and len(in_buffer) > 0 and (result_length - len(in_buffer)) == 1:
+            # Possible test for missing handshake byte
+            return in_buffer
         if result_length != len(in_buffer):
             raise Inverters.SerialReadException(
                 f'Bytes read ({len(in_buffer)}) and result_length ({result_length}) mismatch')
